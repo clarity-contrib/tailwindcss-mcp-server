@@ -253,9 +253,9 @@ describe('Service Integration Tests', () => {
       expect(results[0]).not.toBeNull(); // padding utility
       expect(results[1]).not.toBeNull(); // margin utility
       expect(results[2]).not.toBeNull(); // width utility
-      expect(results[3].tailwindClasses).toContain('m-4'); // CSS conversion 1
-      expect(results[4].tailwindClasses).toContain('p-2'); // CSS conversion 2
-      expect(results[5].length).toBeGreaterThan(0); // spacing utilities
+      expect((results[3] as any)?.tailwindClasses).toContain('m-4'); // CSS conversion 1
+      expect((results[4] as any)?.tailwindClasses).toContain('p-2'); // CSS conversion 2
+      expect((results[5] as any[])?.length).toBeGreaterThan(0); // spacing utilities
     });
 
     it('should maintain cache efficiency across services', async () => {

@@ -12,8 +12,11 @@ import {
   TailwindUtility, 
   ConfigGuide,
   ConfigExample,
+  ConfigGuideParams,
+  SearchDocsParams,
   Example,
-  UtilityValue
+  UtilityValue,
+  ColorInfo
 } from '../types/index.js';
 
 export class DocumentationScraperService extends CachedService {
@@ -81,9 +84,14 @@ export class DocumentationScraperService extends CachedService {
   }
 
   /**
-   * Searches documentation pages for content matching query
+   * Searches documentation pages for content matching query (overloaded for params object)
    */
-  async searchDocumentation(query: string, category?: string, limit: number = 10): Promise<SearchResult[]> {
+  async searchDocumentation(params: SearchDocsParams): Promise<SearchResult[]>;
+  async searchDocumentation(query: string, category?: string, limit?: number): Promise<SearchResult[]>;
+  async searchDocumentation(queryOrParams: string | SearchDocsParams, category?: string, limit: number = 10): Promise<SearchResult[]> {
+    const query = typeof queryOrParams === 'string' ? queryOrParams : queryOrParams.query;
+    const searchCategory = typeof queryOrParams === 'string' ? category : queryOrParams.category;
+    const searchLimit = typeof queryOrParams === 'string' ? limit : queryOrParams.limit || 10;
     try {
       // For now, implement a simple search by scraping the docs index
       // In a production system, you'd want to build an index
@@ -128,6 +136,93 @@ export class DocumentationScraperService extends CachedService {
   }
 
   /**
+   * Scrapes all TailwindCSS utilities from the documentation
+   */
+  async scrapeAllUtilities(): Promise<TailwindUtility[]> {
+    try {
+      console.log('Scraping all TailwindCSS utilities...');
+      
+      // Get the main docs page to find all utility categories
+      const mainDoc = await this.scrapePage('/docs');
+      const $ = cheerio.load(mainDoc.content);
+      
+      const utilities: TailwindUtility[] = [];
+      const utilityCategories = [
+        'layout', 'flexbox-and-grid', 'spacing', 'sizing', 'typography', 
+        'backgrounds', 'borders', 'effects', 'filters', 'tables', 
+        'transitions-and-animation', 'transforms', 'interactivity', 'svg', 'accessibility'
+      ];
+
+      // Scrape each category
+      for (const category of utilityCategories) {
+        try {
+          const categoryUtilities = await this.scrapeCategoryUtilities(category);
+          utilities.push(...categoryUtilities);
+        } catch (error) {
+          console.warn(`Failed to scrape category ${category}:`, error);
+        }
+      }
+
+      console.log(`Successfully scraped ${utilities.length} utilities`);
+      return utilities;
+      
+    } catch (error) {
+      throw new ServiceError(
+        'Failed to scrape all utilities',
+        'DocumentationScraperService',
+        'scrapeAllUtilities',
+        error
+      );
+    }
+  }
+
+  /**
+   * Scrapes utilities for a specific category
+   */
+  private async scrapeCategoryUtilities(category: string): Promise<TailwindUtility[]> {
+    const utilities: TailwindUtility[] = [];
+    
+    try {
+      // Try common utility paths
+      const utilityPaths = await this.getUtilityPathsForCategory(category);
+      
+      for (const path of utilityPaths) {
+        try {
+          const utility = await this.extractUtilityInfo(path);
+          if (utility) {
+            utilities.push(utility);
+          }
+        } catch (error) {
+          console.warn(`Failed to extract utility info for ${path}:`, error);
+        }
+      }
+      
+    } catch (error) {
+      console.warn(`Failed to scrape category ${category}:`, error);
+    }
+    
+    return utilities;
+  }
+
+  /**
+   * Gets utility paths for a specific category
+   */
+  private async getUtilityPathsForCategory(category: string): Promise<string[]> {
+    // This is a simplified implementation - in reality you'd scrape the category page
+    // to get all utility pages within that category
+    const categoryMappings: Record<string, string[]> = {
+      'layout': ['container', 'columns', 'break-after', 'break-before', 'break-inside', 'box-decoration-break', 'box-sizing', 'display', 'float', 'clear', 'isolation', 'object-fit', 'object-position', 'overflow', 'overscroll-behavior', 'position', 'top-right-bottom-left', 'visibility', 'z-index'],
+      'spacing': ['padding', 'margin', 'space-between'],
+      'sizing': ['width', 'min-width', 'max-width', 'height', 'min-height', 'max-height'],
+      'typography': ['font-family', 'font-size', 'font-smoothing', 'font-style', 'font-weight', 'font-variant-numeric', 'letter-spacing', 'line-clamp', 'line-height', 'list-style-image', 'list-style-position', 'list-style-type', 'text-align', 'text-color', 'text-decoration', 'text-decoration-color', 'text-decoration-style', 'text-decoration-thickness', 'text-underline-offset', 'text-transform', 'text-overflow', 'text-wrap', 'text-indent', 'vertical-align', 'whitespace', 'word-break', 'hyphens', 'content'],
+      'backgrounds': ['background-attachment', 'background-clip', 'background-color', 'background-origin', 'background-position', 'background-repeat', 'background-size', 'background-image', 'gradient-color-stops'],
+      'borders': ['border-radius', 'border-width', 'border-color', 'border-style', 'divide-width', 'divide-color', 'divide-style', 'outline-width', 'outline-color', 'outline-style', 'outline-offset', 'ring-width', 'ring-color', 'ring-offset-width', 'ring-offset-color'],
+    };
+
+    return categoryMappings[category] || [];
+  }
+
+  /**
    * Extracts utility class information from documentation pages
    */
   async extractUtilityInfo(utilityPath: string): Promise<TailwindUtility | null> {
@@ -166,6 +261,109 @@ export class DocumentationScraperService extends CachedService {
       console.error(`Failed to extract utility info for ${utilityPath}:`, error);
       return null;
     }
+  }
+
+  /**
+   * Scrapes all TailwindCSS colors from the documentation
+   */
+  async scrapeAllColors(): Promise<ColorInfo[]> {
+    try {
+      console.log('Scraping all TailwindCSS colors...');
+      
+      // Scrape the colors reference page
+      const colorsDoc = await this.scrapePage('/docs/customizing-colors');
+      const $ = cheerio.load(colorsDoc.content);
+      
+      const colors: ColorInfo[] = [];
+      
+      // TailwindCSS default color palette
+      const defaultColors = [
+        'slate', 'gray', 'zinc', 'neutral', 'stone', 
+        'red', 'orange', 'amber', 'yellow', 'lime', 'green', 
+        'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 
+        'violet', 'purple', 'fuchsia', 'pink', 'rose'
+      ];
+
+      for (const colorName of defaultColors) {
+        const colorInfo = await this.extractColorInfo(colorName);
+        if (colorInfo) {
+          colors.push(colorInfo);
+        }
+      }
+
+      console.log(`Successfully scraped ${colors.length} colors`);
+      return colors;
+      
+    } catch (error) {
+      throw new ServiceError(
+        'Failed to scrape all colors',
+        'DocumentationScraperService', 
+        'scrapeAllColors',
+        error
+      );
+    }
+  }
+
+  /**
+   * Extracts color information for a specific color
+   */
+  private async extractColorInfo(colorName: string): Promise<ColorInfo | null> {
+    try {
+      // TailwindCSS default shades
+      const standardShades = ['50', '100', '200', '300', '400', '500', '600', '700', '800', '900', '950'];
+      
+      let shades: { [key: string]: string } = {};
+      const usage: string[] = [];
+
+      // Generate default color values (approximated - in real implementation these would be scraped)
+      const baseColors: Record<string, Record<string, string>> = {
+        'slate': {
+          '50': '#f8fafc', '100': '#f1f5f9', '200': '#e2e8f0', '300': '#cbd5e1',
+          '400': '#94a3b8', '500': '#64748b', '600': '#475569', '700': '#334155',
+          '800': '#1e293b', '900': '#0f172a', '950': '#020617'
+        },
+        'red': {
+          '50': '#fef2f2', '100': '#fee2e2', '200': '#fecaca', '300': '#fca5a5',
+          '400': '#f87171', '500': '#ef4444', '600': '#dc2626', '700': '#b91c1c',
+          '800': '#991b1b', '900': '#7f1d1d', '950': '#450a0a'
+        },
+        'blue': {
+          '50': '#eff6ff', '100': '#dbeafe', '200': '#bfdbfe', '300': '#93c5fd',
+          '400': '#60a5fa', '500': '#3b82f6', '600': '#2563eb', '700': '#1d4ed8',
+          '800': '#1e40af', '900': '#1e3a8a', '950': '#172554'
+        },
+        // Add more default colors as needed
+      };
+
+      if (baseColors[colorName]) {
+        shades = baseColors[colorName];
+      } else {
+        // Generate generic shades if not in predefined list
+        for (const shade of standardShades) {
+          shades[shade] = `var(--color-${colorName}-${shade})`;
+        }
+      }
+
+      // Generate usage examples
+      usage.push(`text-${colorName}-500`, `bg-${colorName}-500`, `border-${colorName}-500`);
+
+      return {
+        name: colorName,
+        shades,
+        usage,
+      };
+
+    } catch (error) {
+      console.warn(`Failed to extract color info for ${colorName}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Gets configuration guide based on parameters
+   */
+  async getConfigGuide(params: ConfigGuideParams): Promise<ConfigGuide | null> {
+    return this.extractConfigGuide(params.topic || 'installation', params.framework);
   }
 
   /**

@@ -11,7 +11,9 @@ import {
   UtilityValue, 
   UtilityModifier, 
   ConversionResult,
-  ColorInfo 
+  ColorInfo,
+  GetUtilitiesParams,
+  GetColorsParams
 } from '../types/index.js';
 
 export class UtilityMapperService implements BaseService {
@@ -119,6 +121,43 @@ export class UtilityMapperService implements BaseService {
         if (b.name.toLowerCase() === lowerQuery) return 1;
         return a.name.localeCompare(b.name);
       });
+  }
+
+  /**
+   * Gets utilities based on parameters (for MCP tool interface)
+   */
+  async getUtilities(params: GetUtilitiesParams): Promise<TailwindUtility[]> {
+    let utilities: TailwindUtility[] = [];
+
+    if (params.category) {
+      utilities = this.getUtilitiesByCategory(params.category);
+    } else if (params.property) {
+      utilities = this.getUtilitiesByProperty(params.property);
+    } else if (params.search) {
+      utilities = this.searchUtilities(params.search);
+    } else {
+      // Return all utilities if no filter specified
+      utilities = Array.from(this.utilityMap.values());
+    }
+
+    return utilities;
+  }
+
+  /**
+   * Gets colors based on parameters (for MCP tool interface)
+   */
+  async getColors(params: GetColorsParams): Promise<ColorInfo[]> {
+    let colors = this.getColorInfo(params.colorName);
+    
+    if (!params.includeShades) {
+      // Filter out shade details if requested
+      colors = colors.map(color => ({
+        ...color,
+        shades: {},
+      }));
+    }
+
+    return colors;
   }
 
   /**
