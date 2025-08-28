@@ -6,7 +6,8 @@
       "Bash(npm run test:*)",
       "Bash(git add:*)",
       "Bash(npm test:*)",
-      "Bash(timeout:*)"
+      "Bash(timeout:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []
