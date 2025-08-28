@@ -39,8 +39,8 @@ npx tailwindcss-mcp-server
 
 ### Local Development
 ```bash
-git clone <repository-url>
-cd tailwindcss-mcp
+git clone https://github.com/CarbonoDev/tailwindcss-mcp-server.git
+cd tailwindcss-mcp-server
 npm install
 npm run build
 ```
@@ -90,7 +90,7 @@ Add to your Claude Desktop configuration file:
 ### Claude Code
 Add MCP Server using npx
 
-``bash
+```bash
 claude mcp add tailwindcss-mcp-server -- npx tailwindcss-mcp-server
 ```
 
@@ -352,8 +352,8 @@ generate_component_template({
 ### Setup
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd tailwindcss-mcp
+git clone https://github.com/CarbonoDev/tailwindcss-mcp-server.git
+cd tailwindcss-mcp-server
 
 # Install dependencies
 npm install
