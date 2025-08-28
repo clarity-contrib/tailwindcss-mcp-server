@@ -64,10 +64,14 @@ export class TailwindCSSServer {
     this.setupToolHandlers();
 
     this.server.onerror = (error) => console.error("[MCP Error]", error);
-    process.on("SIGINT", async () => {
-      await this.server.close();
-      process.exit(0);
-    });
+    
+    // Only add SIGINT handler in non-test environments to avoid MaxListenersExceededWarning
+    if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
+      process.on("SIGINT", async () => {
+        await this.server.close();
+        process.exit(0);
+      });
+    }
   }
 
   /**
@@ -638,9 +642,11 @@ export class TailwindCSSServer {
   }
 }
 
-// Create and run the server
-const server = new TailwindCSSServer();
-server.run().catch((error) => {
-  console.error("Server failed to run:", error);
-  process.exit(1);
-}); 
+// Only run the server if not in test environment
+if (process.env.NODE_ENV !== 'test' && !process.env.VITEST) {
+  const server = new TailwindCSSServer();
+  server.run().catch((error) => {
+    console.error("Server failed to run:", error);
+    process.exit(1);
+  });
+} 

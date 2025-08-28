@@ -650,9 +650,9 @@ export class TemplateService implements BaseService {
     // Convert rgb to hex (simplified)
     const rgbMatch = color.match(/rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/);
     if (rgbMatch) {
-      const r = parseInt(rgbMatch[1]);
-      const g = parseInt(rgbMatch[2]);
-      const b = parseInt(rgbMatch[3]);
+      const r = Math.min(255, Math.max(0, parseInt(rgbMatch[1])));
+      const g = Math.min(255, Math.max(0, parseInt(rgbMatch[2])));
+      const b = Math.min(255, Math.max(0, parseInt(rgbMatch[3])));
       return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
     }
     
@@ -692,13 +692,13 @@ export class TemplateService implements BaseService {
       // Lighter shades
       factor = 1 + ((500 - shade) / 500) * 0.9;
     } else {
-      // Darker shades
-      factor = 1 - ((shade - 500) / 500) * 0.8;
+      // Darker shades - ensure factor doesn't go below 0
+      factor = Math.max(0, 1 - ((shade - 500) / 500) * 0.8);
     }
 
-    const r = Math.round(Math.min(255, rgb.r * factor));
-    const g = Math.round(Math.min(255, rgb.g * factor));
-    const b = Math.round(Math.min(255, rgb.b * factor));
+    const r = Math.round(Math.min(255, Math.max(0, rgb.r * factor)));
+    const g = Math.round(Math.min(255, Math.max(0, rgb.g * factor)));
+    const b = Math.round(Math.min(255, Math.max(0, rgb.b * factor)));
 
     return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
   }

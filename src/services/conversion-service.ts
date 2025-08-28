@@ -346,9 +346,23 @@ export class ConversionService implements BaseService {
       customUtilities: conversions.custom
     };
 
-    if (conversions.utilities.length === 0) {
+    // Add specific suggestions first
+    if (conversions.unsupported.length > 0) {
       if (!result.suggestions) result.suggestions = [];
-      result.suggestions.push('No direct TailwindCSS equivalents found for the provided CSS');
+      result.suggestions.push("Some CSS properties don't have direct TailwindCSS equivalents. Consider using arbitrary values like [property:value]");
+    }
+    
+    if (conversions.custom.length > 0) {
+      if (!result.suggestions) result.suggestions = [];
+      result.suggestions.push("Some values are outside Tailwind's default scale. Consider extending your Tailwind config or using arbitrary values");
+    }
+
+    if (conversions.utilities.length === 0) {
+      // Only add the generic message if no specific suggestions were added
+      if (!result.suggestions || result.suggestions.length === 0) {
+        if (!result.suggestions) result.suggestions = [];
+        result.suggestions.push('No direct TailwindCSS equivalents found for the provided CSS');
+      }
       return result;
     }
 
@@ -361,17 +375,6 @@ export class ConversionService implements BaseService {
         break;
       default: // 'classes'
         result.tailwindClasses = conversions.utilities.join(' ');
-    }
-
-    // Add suggestions
-    if (conversions.unsupported.length > 0) {
-      if (!result.suggestions) result.suggestions = [];
-      result.suggestions.push('Some CSS properties don\'t have direct TailwindCSS equivalents. Consider using arbitrary values like [property:value]');
-    }
-    
-    if (conversions.custom.length > 0) {
-      if (!result.suggestions) result.suggestions = [];
-      result.suggestions.push('Some values are outside Tailwind\'s default scale. Consider extending your Tailwind config or using arbitrary values');
     }
 
     return result;

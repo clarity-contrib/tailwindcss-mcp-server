@@ -277,7 +277,7 @@ describe('TemplateService', () => {
         expect(template.html).toContain('z-50');
         expect(template.html).toContain('Cancel');
         expect(template.html).toContain('Confirm');
-        expect(template.customizations).toContain('Add JavaScript for show/hide');
+        expect(template.customizations).toContain('Add JavaScript for show/hide functionality');
       });
     });
 
@@ -312,7 +312,7 @@ describe('TemplateService', () => {
         expect(template.html).toContain('Error');
         expect(template.html).toContain('Warning');
         expect(template.html).toContain('rounded-full');
-        expect(template.customizations).toContain('Change badge colors');
+        expect(template.customizations).toContain('Change badge colors using bg-* and text-* utilities');
       });
     });
 
@@ -331,7 +331,7 @@ describe('TemplateService', () => {
         expect(template.html).toContain('Category');
         expect(template.html).toContain('Current Page');
         expect(template.html).toContain('<svg');
-        expect(template.customizations).toContain('Update links and URLs');
+        expect(template.customizations).toContain('Update links and URLs to match your site structure');
       });
 
       it('should generate playful breadcrumb', async () => {
