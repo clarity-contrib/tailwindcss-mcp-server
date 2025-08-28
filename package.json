@@ -40,13 +40,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/your-github/tailwindcss-mcp-server.git"
+    "url": "git+https://github.com/CarbonoDev/tailwindcss-mcp-server.git"
   },
-  "author": "Your Name <your.email@example.com>",
+  "author": "Marco Rivadeneyra <marco@carbonodev.com>",
   "bugs": {
-    "url": "https://github.com/your-github/tailwindcss-mcp-server/issues"
+    "url": "https://github.com/CarbonoDev/tailwindcss-mcp-server/issues"
   },
-  "homepage": "https://github.com/your-github/tailwindcss-mcp-server#readme",
+  "homepage": "https://github.com/CarbonoDev/tailwindcss-mcp-server#readme",
   "keywords": [
     "tailwindcss",
     "css",

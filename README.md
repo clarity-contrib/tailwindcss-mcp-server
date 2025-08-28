@@ -51,7 +51,7 @@ npm run build
 
 Add to your Claude Desktop configuration file:
 
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`  
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 **Windows**: `%APPDATA%/Claude/claude_desktop_config.json`
 
 #### Option 1: Using global installation
@@ -86,6 +86,12 @@ Add to your Claude Desktop configuration file:
     }
   }
 }
+```
+### Claude Code
+Add MCP Server using npx
+
+``bash
+claude mcp add tailwindcss-mcp-server -- npx tailwindcss-mcp-server
 ```
 
 ### Windsurf IDE
@@ -183,15 +189,15 @@ Search TailwindCSS documentation with intelligent filtering.
 **Example Usage:**
 ```typescript
 // Search for responsive design information
-search_tailwind_docs({ 
+search_tailwind_docs({
   query: "responsive design",
-  limit: 5 
+  limit: 5
 })
 
 // Search in specific category
-search_tailwind_docs({ 
+search_tailwind_docs({
   query: "dark mode",
-  category: "customization" 
+  category: "customization"
 })
 ```
 
@@ -208,16 +214,16 @@ Generate complete installation commands and configuration files for any framewor
 **Example Usage:**
 ```typescript
 // Install for Next.js with npm
-install_tailwind({ 
+install_tailwind({
   framework: "nextjs",
-  packageManager: "npm" 
+  packageManager: "npm"
 })
 
 // Install for React with TypeScript and yarn
-install_tailwind({ 
+install_tailwind({
   framework: "react",
   packageManager: "yarn",
-  includeTypescript: true 
+  includeTypescript: true
 })
 ```
 
@@ -231,20 +237,20 @@ Convert traditional CSS to TailwindCSS utility classes with intelligent suggesti
 **Example Usage:**
 ```typescript
 // Convert CSS to utility classes
-convert_css_to_tailwind({ 
+convert_css_to_tailwind({
   css: ".button { padding: 1rem; background-color: #3B82F6; color: white; }"
 })
 
 // Convert with inline format
-convert_css_to_tailwind({ 
+convert_css_to_tailwind({
   css: ".card { margin: 16px; border-radius: 8px; }",
-  mode: "inline" 
+  mode: "inline"
 })
 
 // Convert for @apply directive
-convert_css_to_tailwind({ 
+convert_css_to_tailwind({
   css: ".component { display: flex; justify-content: center; }",
-  mode: "component" 
+  mode: "component"
 })
 ```
 
@@ -340,7 +346,7 @@ generate_component_template({
 ## 🔧 Development
 
 ### Prerequisites
-- Node.js 18+ 
+- Node.js 18+
 - npm, yarn, or pnpm
 
 ### Setup
