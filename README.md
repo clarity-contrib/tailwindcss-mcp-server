@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="tailwindcss-clarity-mcp-server-with-v3-and-v4.png" alt="TailwindCSS MCP Server" />
+  <img src="tailwindcss-clarity-mcp-server-with-v3-and-v4.png" alt="TailwindCSS MCP Server" width="720" />
 </p>
 
 # TailwindCSS MCP Server
