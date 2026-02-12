@@ -27,22 +27,31 @@ A comprehensive Model Context Protocol (MCP) server that provides TailwindCSS ut
 
 ## 📦 Installation
 
-### Using npm (Recommended)
+### Using bun (Recommended)
 ```bash
-npm install -g tailwindcss-mcp-server
+bun add -g @clarity-contrib/tailwindcss-mcp-server
+```
+
+### Using npm
+```bash
+npm install -g @clarity-contrib/tailwindcss-mcp-server
 ```
 
 ### Using the package directly
 ```bash
-npx tailwindcss-mcp-server
+# With bun
+bunx @clarity-contrib/tailwindcss-mcp-server
+
+# With npx
+npx @clarity-contrib/tailwindcss-mcp-server
 ```
 
 ### Local Development
 ```bash
-git clone https://github.com/CarbonoDev/tailwindcss-mcp-server.git
+git clone https://github.com/clarity-contrib/tailwindcss-mcp-server.git
 cd tailwindcss-mcp-server
-npm install
-npm run build
+bun install
+bun run build
 ```
 
 ## ⚙️ Configuration
@@ -65,19 +74,31 @@ Add to your Claude Desktop configuration file:
 }
 ```
 
-#### Option 2: Using npx
+#### Option 2: Using bunx
 ```json
 {
   "mcpServers": {
     "tailwindcss-server": {
-      "command": "npx",
-      "args": ["-y", "tailwindcss-mcp-server"]
+      "command": "bunx",
+      "args": ["@clarity-contrib/tailwindcss-mcp-server"]
     }
   }
 }
 ```
 
-#### Option 3: Using local build
+#### Option 3: Using npx
+```json
+{
+  "mcpServers": {
+    "tailwindcss-server": {
+      "command": "npx",
+      "args": ["-y", "@clarity-contrib/tailwindcss-mcp-server"]
+    }
+  }
+}
+```
+
+#### Option 4: Using local build
 ```json
 {
   "mcpServers": {
@@ -88,10 +109,13 @@ Add to your Claude Desktop configuration file:
 }
 ```
 ### Claude Code
-Add MCP Server using npx
 
 ```bash
-claude mcp add tailwindcss-mcp-server -- npx tailwindcss-mcp-server
+# Using bunx
+claude mcp add tailwindcss-mcp-server -- bunx @clarity-contrib/tailwindcss-mcp-server
+
+# Using npx
+claude mcp add tailwindcss-mcp-server -- npx -y @clarity-contrib/tailwindcss-mcp-server
 ```
 
 ### Windsurf IDE
@@ -101,8 +125,20 @@ Add to your `./windsurf/mcp_servers.json`:
 {
   "mcpServers": {
     "tailwindcss-server": {
+      "command": "bunx",
+      "args": ["@clarity-contrib/tailwindcss-mcp-server"]
+    }
+  }
+}
+```
+
+Or with npx:
+```json
+{
+  "mcpServers": {
+    "tailwindcss-server": {
       "command": "npx",
-      "args": ["-y", "tailwindcss-mcp-server"]
+      "args": ["-y", "@clarity-contrib/tailwindcss-mcp-server"]
     }
   }
 }
@@ -115,8 +151,20 @@ Add to your `.cursor/mcp.json`:
 {
   "mcpServers": {
     "tailwindcss-server": {
+      "command": "bunx",
+      "args": ["@clarity-contrib/tailwindcss-mcp-server"]
+    }
+  }
+}
+```
+
+Or with npx:
+```json
+{
+  "mcpServers": {
+    "tailwindcss-server": {
       "command": "npx",
-      "args": ["-y", "tailwindcss-mcp-server"]
+      "args": ["-y", "@clarity-contrib/tailwindcss-mcp-server"]
     }
   }
 }
@@ -346,48 +394,47 @@ generate_component_template({
 ## 🔧 Development
 
 ### Prerequisites
-- Node.js 18+
-- npm, yarn, or pnpm
+- [Bun](https://bun.sh) 1.0+
 
 ### Setup
 ```bash
 # Clone the repository
-git clone https://github.com/CarbonoDev/tailwindcss-mcp-server.git
+git clone https://github.com/clarity-contrib/tailwindcss-mcp-server.git
 cd tailwindcss-mcp-server
 
 # Install dependencies
-npm install
+bun install
 
 # Build the project
-npm run build
+bun run build
 
 # Run tests
-npm test
+bun test
 
 # Start development with watch mode
-npm run watch
+bun run watch
 ```
 
 ### Testing
 ```bash
 # Run all tests
-npm test
+bun test
 
 # Run tests with coverage
-npm run test:coverage
+bun run test:coverage
 
 # Run tests in watch mode
-npm run test:watch
+bun run test:watch
 
 # Run tests with UI
-npm run test:ui
+bun run test:ui
 ```
 
 ### Debugging
 
 Use the MCP Inspector for debugging and development:
 ```bash
-npm run inspector
+bun run inspector
 ```
 
 This will start the inspector and provide a URL for browser-based debugging.

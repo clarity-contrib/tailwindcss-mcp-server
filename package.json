@@ -1,9 +1,12 @@
 {
-  "name": "tailwindcss-mcp-server",
-  "version": "0.1.1",
+  "name": "@clarity-contrib/tailwindcss-mcp-server",
+  "version": "1.0.0",
   "description": "MCP server for TailwindCSS utility classes, documentation, and project assistance",
   "type": "module",
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "bin": {
     "tailwindcss-server": "build/index.js"
   },
@@ -16,10 +19,10 @@
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
-    "prepare": "npm run build",
+    "build": "tsc && chmod 755 build/index.js",
+    "prepare": "bun run build",
     "watch": "tsc --watch",
-    "inspector": "npx @modelcontextprotocol/inspector build/index.js",
+    "inspector": "bunx @modelcontextprotocol/inspector build/index.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
@@ -27,31 +30,30 @@
     "test:ci": "vitest run --coverage --reporter=junit --outputFile=test-results.xml"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.6.0",
-    "axios": "^1.7.9",
-    "cheerio": "^1.0.0-rc.12",
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "axios": "^1.13.5",
+    "cheerio": "^1.2.0",
     "css-tree": "^3.1.0",
     "postcss": "^8.5.6"
   },
   "devDependencies": {
-    "@types/css-tree": "^2.3.10",
+    "@types/css-tree": "^2.3.11",
     "@types/jest": "^30.0.0",
-    "@types/node": "^20.11.24",
-    "@vitest/coverage-v8": "^3.2.4",
-    "@vitest/ui": "^3.2.4",
-    "happy-dom": "^18.0.1",
-    "typescript": "^5.3.3",
-    "vitest": "^3.2.4"
+    "@types/node": "^25.2.3",
+    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/ui": "^4.0.18",
+    "happy-dom": "^20.6.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/CarbonoDev/tailwindcss-mcp-server.git"
+    "url": "git+https://github.com/clarity-contrib/tailwindcss-mcp-server.git"
   },
-  "author": "Marco Rivadeneyra <marco@carbonodev.com>",
   "bugs": {
-    "url": "https://github.com/CarbonoDev/tailwindcss-mcp-server/issues"
+    "url": "https://github.com/clarity-contrib/tailwindcss-mcp-server/issues"
   },
-  "homepage": "https://github.com/CarbonoDev/tailwindcss-mcp-server#readme",
+  "homepage": "https://github.com/clarity-contrib/tailwindcss-mcp-server#readme",
   "keywords": [
     "tailwindcss",
     "css",

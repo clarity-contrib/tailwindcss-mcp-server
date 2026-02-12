@@ -9,12 +9,12 @@ This is a TypeScript-based MCP (Model Context Protocol) server for TailwindCSS, 
 ## Development Commands
 
 ### Build & Development
-- `npm install` - Install dependencies
-- `npm run build` - Build TypeScript to JavaScript and set executable permissions
-- `npm run watch` - Watch mode for development (auto-rebuilds on file changes)
+- `bun install` - Install dependencies
+- `bun run build` - Build TypeScript to JavaScript and set executable permissions
+- `bun run watch` - Watch mode for development (auto-rebuilds on file changes)
 
 ### Testing & Debugging
-- `npm run inspector` - Launch MCP Inspector for debugging the server through a web interface
+- `bun run inspector` - Launch MCP Inspector for debugging the server through a web interface
 
 ## Architecture & Key Components
 

@@ -21,14 +21,15 @@ vi.mock('axios', () => ({
 }));
 
 // Mock @modelcontextprotocol/sdk/server
-vi.mock('@modelcontextprotocol/sdk/server/index.js', () => ({
-  Server: vi.fn().mockImplementation(() => ({
-    setRequestHandler: vi.fn(),
-    onerror: vi.fn(),
-    connect: vi.fn(),
-    close: vi.fn(),
-  })),
-}));
+vi.mock('@modelcontextprotocol/sdk/server/index.js', () => {
+  const MockServer = vi.fn(function (this: any) {
+    this.setRequestHandler = vi.fn();
+    this.onerror = vi.fn();
+    this.connect = vi.fn();
+    this.close = vi.fn();
+  });
+  return { Server: MockServer };
+});
 
 vi.mock('@modelcontextprotocol/sdk/server/stdio.js', () => ({
   StdioServerTransport: vi.fn(),
