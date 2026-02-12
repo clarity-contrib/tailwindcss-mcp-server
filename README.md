@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="tailwindcss-clarity-mcp-server-with-v3-and-v4.png" alt="TailwindCSS MCP Server" />
+</p>
+
 # TailwindCSS MCP Server
 
 > Actively maintained with up-to-date dependencies, compatibility fixes, and new features. Contributions are welcome!
