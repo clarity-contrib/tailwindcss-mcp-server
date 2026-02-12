@@ -20,6 +20,15 @@ This is a TypeScript-based MCP (Model Context Protocol) server for TailwindCSS, 
 ### Publishing
 - `bun publish` - Publish to npm (auto-builds via `prepare` script)
 - Always use `bun` for all package management — never npm/yarn/pnpm
+- **Important**: When any new files/directories are added under `src/`, make sure `build/<dir>` is listed in the `files` array in `package.json` — otherwise the published package will be broken
+
+### Manual MCP Integration Testing
+After making changes, always verify the package works end-to-end as an MCP server:
+1. Build: `bun run build`
+2. Run the sibling test project: `bun run ../test-tailwindcss-mcp/index.ts` — this spawns the MCP server via `bunx`, connects as a client, and calls multiple tools with v3/v4 params
+3. Or use the MCP Inspector: `bun run inspector` — opens a web UI to call tools interactively
+4. Verify version-specific outputs differ: v3 `module.exports` vs v4 `@theme`, v3 `tailwind.config.js` vs v4 none, etc.
+5. stderr logs (e.g. `[v4] Scraping documentation page: ...`) confirm which version/URL is being hit
 
 ## Architecture & Key Components
 
