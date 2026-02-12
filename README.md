@@ -1,5 +1,7 @@
 # TailwindCSS MCP Server
 
+> Actively maintained with up-to-date dependencies, compatibility fixes, and new features. Contributions are welcome!
+
 A comprehensive Model Context Protocol (MCP) server that provides TailwindCSS utilities, documentation, conversion tools, and template generation capabilities. This server enables AI assistants to help with TailwindCSS development through intelligent tooling and real-time assistance.
 
 ## 🚀 Features
@@ -457,6 +459,10 @@ This will start the inspector and provide a URL for browser-based debugging.
 3. Make your changes with tests
 4. Ensure all tests pass
 5. Submit a pull request
+
+## 🙏 Acknowledgments
+
+Originally created by [Marco Rivadeneyra / CarbonoDev](https://github.com/CarbonoDev/tailwindcss-mcp-server). Thanks for the great foundation!
 
 ## 📄 License
 
