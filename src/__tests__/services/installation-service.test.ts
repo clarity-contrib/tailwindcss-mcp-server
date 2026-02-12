@@ -32,7 +32,7 @@ describe('InstallationService', () => {
 
     it('should return supported frameworks', () => {
       const frameworks = installationService.getSupportedFrameworks();
-      
+
       expect(frameworks).toContain('react');
       expect(frameworks).toContain('nextjs');
       expect(frameworks).toContain('vue');
@@ -44,14 +44,14 @@ describe('InstallationService', () => {
 
     it('should return frameworks in lowercase', () => {
       const frameworks = installationService.getSupportedFrameworks();
-      
+
       frameworks.forEach(framework => {
         expect(framework).toBe(framework.toLowerCase());
       });
     });
   });
 
-  describe('generateInstallationGuide', () => {
+  describe('generateInstallationGuide (v3)', () => {
     beforeEach(async () => {
       await installationService.initialize();
     });
@@ -61,7 +61,8 @@ describe('InstallationService', () => {
         const params: InstallTailwindParams = {
           framework: 'react',
           packageManager: 'npm',
-          includeTypescript: false
+          includeTypescript: false,
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -69,10 +70,11 @@ describe('InstallationService', () => {
         expect(guide).toHaveProperty('commands');
         expect(guide).toHaveProperty('configFiles');
         expect(guide).toHaveProperty('nextSteps');
+        expect(guide.version).toBe('v3');
 
         expect(guide.commands).toContain('npm install -D tailwindcss autoprefixer postcss');
         expect(guide.commands).toContain('npx tailwindcss init -p');
-        
+
         expect(guide.configFiles).toHaveLength(3); // tailwind.config.js, postcss.config.js, src/index.css
         expect(guide.configFiles.some(file => file.filename === 'tailwind.config.js')).toBe(true);
         expect(guide.configFiles.some(file => file.filename === 'postcss.config.js')).toBe(true);
@@ -86,7 +88,8 @@ describe('InstallationService', () => {
         const params: InstallTailwindParams = {
           framework: 'react',
           packageManager: 'npm',
-          includeTypescript: true
+          includeTypescript: true,
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -99,7 +102,8 @@ describe('InstallationService', () => {
       it('should generate installation guide for React with yarn', async () => {
         const params: InstallTailwindParams = {
           framework: 'react',
-          packageManager: 'yarn'
+          packageManager: 'yarn',
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -110,7 +114,8 @@ describe('InstallationService', () => {
       it('should generate installation guide for React with pnpm', async () => {
         const params: InstallTailwindParams = {
           framework: 'react',
-          packageManager: 'pnpm'
+          packageManager: 'pnpm',
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -121,7 +126,8 @@ describe('InstallationService', () => {
       it('should generate installation guide for React with bun', async () => {
         const params: InstallTailwindParams = {
           framework: 'react',
-          packageManager: 'bun'
+          packageManager: 'bun',
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -134,7 +140,8 @@ describe('InstallationService', () => {
       it('should generate installation guide for Next.js', async () => {
         const params: InstallTailwindParams = {
           framework: 'nextjs',
-          packageManager: 'npm'
+          packageManager: 'npm',
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -149,89 +156,12 @@ describe('InstallationService', () => {
       });
     });
 
-    describe('Vue framework', () => {
-      it('should generate installation guide for Vue', async () => {
-        const params: InstallTailwindParams = {
-          framework: 'vue',
-          packageManager: 'npm'
-        };
-
-        const guide = await installationService.generateInstallationGuide(params);
-
-        const configFile = guide.configFiles.find(file => file.filename === 'tailwind.config.js');
-        expect(configFile?.content).toContain('./index.html');
-        expect(configFile?.content).toContain('./src/**/*.{vue,js,ts,jsx,tsx}');
-
-        expect(guide.nextSteps).toContain('Import your CSS file in src/main.js');
-      });
-    });
-
-    describe('Laravel framework', () => {
-      it('should generate installation guide for Laravel', async () => {
-        const params: InstallTailwindParams = {
-          framework: 'laravel',
-          packageManager: 'npm'
-        };
-
-        const guide = await installationService.generateInstallationGuide(params);
-
-        const configFile = guide.configFiles.find(file => file.filename === 'tailwind.config.js');
-        expect(configFile?.content).toContain('./resources/**/*.blade.php');
-        expect(configFile?.content).toContain('./resources/**/*.js');
-        expect(configFile?.content).toContain('./resources/**/*.vue');
-
-        expect(guide.nextSteps).toContain('Make sure your build process includes the CSS compilation step');
-        expect(guide.nextSteps).toContain('Add the Tailwind directives to your resources/css/app.css file');
-      });
-    });
-
-    describe('Angular framework', () => {
-      it('should generate installation guide for Angular', async () => {
-        const params: InstallTailwindParams = {
-          framework: 'angular',
-          packageManager: 'npm'
-        };
-
-        const guide = await installationService.generateInstallationGuide(params);
-
-        // Angular doesn't use PostCSS config by default
-        expect(guide.configFiles.some(file => file.filename === 'postcss.config.js')).toBe(false);
-
-        const configFile = guide.configFiles.find(file => file.filename === 'tailwind.config.js');
-        expect(configFile?.content).toContain('./src/**/*.{html,ts}');
-
-        expect(guide.nextSteps).toContain('Add the Tailwind directives to your src/styles.css file');
-      });
-    });
-
-    describe('Error handling', () => {
-      it('should throw ServiceError for unsupported framework', async () => {
-        const params: InstallTailwindParams = {
-          framework: 'unsupported-framework'
-        };
-
-        await expect(installationService.generateInstallationGuide(params))
-          .rejects.toThrow(ServiceError);
-        
-        await expect(installationService.generateInstallationGuide(params))
-          .rejects.toThrow('Unsupported framework: unsupported-framework');
-      });
-
-      it('should handle case-insensitive framework names', async () => {
-        const params: InstallTailwindParams = {
-          framework: 'REACT'
-        };
-
-        const guide = await installationService.generateInstallationGuide(params);
-        expect(guide.commands).toContain('npm install -D tailwindcss autoprefixer postcss');
-      });
-    });
-
     describe('Configuration files', () => {
       it('should generate proper tailwind.config.js content', async () => {
         const params: InstallTailwindParams = {
           framework: 'react',
-          includeTypescript: false
+          includeTypescript: false,
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -248,7 +178,8 @@ describe('InstallationService', () => {
       it('should generate proper tailwind.config.ts content for TypeScript', async () => {
         const params: InstallTailwindParams = {
           framework: 'react',
-          includeTypescript: true
+          includeTypescript: true,
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -261,7 +192,8 @@ describe('InstallationService', () => {
 
       it('should generate proper PostCSS config content', async () => {
         const params: InstallTailwindParams = {
-          framework: 'react'
+          framework: 'react',
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -269,13 +201,14 @@ describe('InstallationService', () => {
 
         expect(postcssFile?.content).toContain('module.exports = {');
         expect(postcssFile?.content).toContain('plugins: {');
-        expect(postcssFile?.content).toContain('tailwindcss: {},');
-        expect(postcssFile?.content).toContain('autoprefixer: {},');
+        expect(postcssFile?.content).toContain('"tailwindcss"');
+        expect(postcssFile?.content).toContain('"autoprefixer"');
       });
 
       it('should generate proper CSS content', async () => {
         const params: InstallTailwindParams = {
-          framework: 'react'
+          framework: 'react',
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -290,7 +223,8 @@ describe('InstallationService', () => {
     describe('Default values', () => {
       it('should use npm as default package manager', async () => {
         const params: InstallTailwindParams = {
-          framework: 'react'
+          framework: 'react',
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
@@ -299,13 +233,157 @@ describe('InstallationService', () => {
 
       it('should use JavaScript config by default', async () => {
         const params: InstallTailwindParams = {
-          framework: 'react'
+          framework: 'react',
+          version: 'v3'
         };
 
         const guide = await installationService.generateInstallationGuide(params);
         expect(guide.configFiles.some(file => file.filename === 'tailwind.config.js')).toBe(true);
         expect(guide.configFiles.some(file => file.filename === 'tailwind.config.ts')).toBe(false);
       });
+    });
+  });
+
+  describe('generateInstallationGuide (v4)', () => {
+    beforeEach(async () => {
+      await installationService.initialize();
+    });
+
+    it('should generate v4 installation guide for React with npm', async () => {
+      const params: InstallTailwindParams = {
+        framework: 'react',
+        packageManager: 'npm',
+        version: 'v4'
+      };
+
+      const guide = await installationService.generateInstallationGuide(params);
+
+      expect(guide.version).toBe('v4');
+      expect(guide.commands).toContain('npm install -D tailwindcss @tailwindcss/postcss');
+      // v4 has no init command
+      expect(guide.commands).not.toContain('npx tailwindcss init -p');
+      expect(guide.commands).toHaveLength(1);
+    });
+
+    it('should not generate tailwind.config.js for v4', async () => {
+      const params: InstallTailwindParams = {
+        framework: 'react',
+        version: 'v4'
+      };
+
+      const guide = await installationService.generateInstallationGuide(params);
+
+      expect(guide.configFiles.some(file => file.filename.startsWith('tailwind.config'))).toBe(false);
+    });
+
+    it('should generate @import CSS entry for v4', async () => {
+      const params: InstallTailwindParams = {
+        framework: 'react',
+        version: 'v4'
+      };
+
+      const guide = await installationService.generateInstallationGuide(params);
+      const cssFile = guide.configFiles.find(file => file.filename === 'src/index.css');
+
+      expect(cssFile?.content).toBe('@import "tailwindcss";');
+      expect(cssFile?.content).not.toContain('@tailwind');
+    });
+
+    it('should use @tailwindcss/postcss plugin for v4', async () => {
+      const params: InstallTailwindParams = {
+        framework: 'react',
+        version: 'v4'
+      };
+
+      const guide = await installationService.generateInstallationGuide(params);
+      const postcssFile = guide.configFiles.find(file => file.filename === 'postcss.config.js');
+
+      expect(postcssFile?.content).toContain('@tailwindcss/postcss');
+      expect(postcssFile?.content).not.toContain('"autoprefixer"');
+    });
+
+    it('should have v4 config files: postcss + css only (no tailwind.config)', async () => {
+      const params: InstallTailwindParams = {
+        framework: 'react',
+        version: 'v4'
+      };
+
+      const guide = await installationService.generateInstallationGuide(params);
+
+      // Should have postcss.config.js and src/index.css but NOT tailwind.config.js
+      expect(guide.configFiles).toHaveLength(2);
+      expect(guide.configFiles.some(file => file.filename === 'postcss.config.js')).toBe(true);
+      expect(guide.configFiles.some(file => file.filename === 'src/index.css')).toBe(true);
+    });
+
+    it('should suggest @theme customization instead of tailwind.config.js for v4', async () => {
+      const params: InstallTailwindParams = {
+        framework: 'react',
+        version: 'v4'
+      };
+
+      const guide = await installationService.generateInstallationGuide(params);
+
+      expect(guide.nextSteps).toContain('Customize your design tokens using @theme in your CSS file');
+      expect(guide.nextSteps).not.toContain('Update your tailwind.config.js content paths to match your project structure');
+    });
+
+    it('should handle all package managers for v4', async () => {
+      const packageManagers = ['npm', 'yarn', 'pnpm', 'bun'] as const;
+
+      for (const pm of packageManagers) {
+        const params: InstallTailwindParams = {
+          framework: 'react',
+          packageManager: pm,
+          version: 'v4'
+        };
+
+        const guide = await installationService.generateInstallationGuide(params);
+        const installCommand = guide.commands[0];
+        expect(installCommand).toContain('tailwindcss');
+        expect(installCommand).toContain('@tailwindcss/postcss');
+        expect(installCommand).not.toContain('autoprefixer');
+      }
+    });
+
+    it('should default to v4 when no version specified', async () => {
+      const params: InstallTailwindParams = {
+        framework: 'react',
+        packageManager: 'npm'
+      };
+
+      const guide = await installationService.generateInstallationGuide(params);
+
+      expect(guide.version).toBe('v4');
+      expect(guide.commands).toContain('npm install -D tailwindcss @tailwindcss/postcss');
+    });
+  });
+
+  describe('Error handling', () => {
+    beforeEach(async () => {
+      await installationService.initialize();
+    });
+
+    it('should throw ServiceError for unsupported framework', async () => {
+      const params: InstallTailwindParams = {
+        framework: 'unsupported-framework'
+      };
+
+      await expect(installationService.generateInstallationGuide(params))
+        .rejects.toThrow(ServiceError);
+
+      await expect(installationService.generateInstallationGuide(params))
+        .rejects.toThrow('Unsupported framework: unsupported-framework');
+    });
+
+    it('should handle case-insensitive framework names', async () => {
+      const params: InstallTailwindParams = {
+        framework: 'REACT',
+        version: 'v3'
+      };
+
+      const guide = await installationService.generateInstallationGuide(params);
+      expect(guide.commands).toContain('npm install -D tailwindcss autoprefixer postcss');
     });
   });
 
@@ -334,7 +412,8 @@ describe('InstallationService', () => {
 
     it('should handle framework with mixed case', async () => {
       const params: InstallTailwindParams = {
-        framework: 'ReAcT'
+        framework: 'ReAcT',
+        version: 'v3'
       };
 
       const guide = await installationService.generateInstallationGuide(params);

@@ -69,11 +69,12 @@ describe('Action Tools Integration Tests', () => {
   });
 
   describe('install_tailwind integration', () => {
-    it('should generate complete installation guide for React', async () => {
+    it('should generate complete v3 installation guide for React', async () => {
       const params = {
         framework: 'react',
         packageManager: 'npm' as const,
-        includeTypescript: false
+        includeTypescript: false,
+        version: 'v3' as const
       };
 
       const guide = await installationService.generateInstallationGuide(params);
@@ -101,21 +102,40 @@ describe('Action Tools Integration Tests', () => {
         nextSteps: expect.arrayContaining([
           expect.stringContaining('Update your tailwind.config.js'),
           expect.stringContaining('Import your CSS file')
-        ])
+        ]),
+        version: 'v3'
       });
+    });
+
+    it('should generate complete v4 installation guide for React', async () => {
+      const params = {
+        framework: 'react',
+        packageManager: 'npm' as const,
+        version: 'v4' as const
+      };
+
+      const guide = await installationService.generateInstallationGuide(params);
+
+      expect(guide.version).toBe('v4');
+      expect(guide.commands).toContain('npm install -D tailwindcss @tailwindcss/postcss');
+      expect(guide.commands).not.toContain('npx tailwindcss init -p');
+      expect(guide.configFiles.some(f => f.filename.startsWith('tailwind.config'))).toBe(false);
+      const cssFile = guide.configFiles.find(f => f.filename === 'src/index.css');
+      expect(cssFile?.content).toBe('@import "tailwindcss";');
     });
 
     it('should handle TypeScript projects correctly', async () => {
       const params = {
         framework: 'nextjs',
         packageManager: 'yarn' as const,
-        includeTypescript: true
+        includeTypescript: true,
+        version: 'v3' as const
       };
 
       const guide = await installationService.generateInstallationGuide(params);
 
       expect(guide.commands).toContain('yarn add -D tailwindcss autoprefixer postcss @types/node');
-      
+
       const tsConfigFile = guide.configFiles.find(file => file.filename === 'tailwind.config.ts');
       expect(tsConfigFile).toBeDefined();
       expect(tsConfigFile?.content).toContain('import type { Config } from "tailwindcss"');
@@ -123,7 +143,7 @@ describe('Action Tools Integration Tests', () => {
       expect(tsConfigFile?.content).toContain('export default config;');
     });
 
-    it('should provide framework-specific content paths', async () => {
+    it('should provide framework-specific content paths (v3)', async () => {
       const testCases = [
         {
           framework: 'react',
@@ -152,10 +172,10 @@ describe('Action Tools Integration Tests', () => {
       ];
 
       for (const testCase of testCases) {
-        const params = { framework: testCase.framework };
+        const params = { framework: testCase.framework, version: 'v3' as const };
         const guide = await installationService.generateInstallationGuide(params);
         const configFile = guide.configFiles.find(file => file.filename.includes('tailwind.config'));
-        
+
         testCase.expectedPaths.forEach(path => {
           expect(configFile?.content).toContain(`"${path}"`);
         });
@@ -169,7 +189,7 @@ describe('Action Tools Integration Tests', () => {
       for (const pm of packageManagers) {
         const params = { framework, packageManager: pm };
         const guide = await installationService.generateInstallationGuide(params);
-        
+
         const installCommand = guide.commands.find(cmd => cmd.includes('tailwindcss'));
         expect(installCommand).toContain(`${pm} ${pm === 'npm' ? 'install' : 'add'} -D`);
       }
@@ -280,10 +300,11 @@ describe('Action Tools Integration Tests', () => {
   });
 
   describe('generate_color_palette integration', () => {
-    it('should generate complete color palette from hex color', async () => {
+    it('should generate complete v3 color palette from hex color', async () => {
       const params = {
         baseColor: '#3B82F6',
-        name: 'primary'
+        name: 'primary',
+        version: 'v3' as const
       };
 
       const palette = await templateService.generateColorPalette(params);
@@ -299,7 +320,8 @@ describe('Action Tools Integration Tests', () => {
           '950': expect.stringMatching(/^#[0-9A-F]{6}$/i),
         }),
         cssVariables: expect.stringContaining(':root {'),
-        tailwindConfig: expect.stringContaining('module.exports = {')
+        tailwindConfig: expect.stringContaining('module.exports = {'),
+        version: 'v3'
       });
 
       // Verify CSS variables format
@@ -309,8 +331,22 @@ describe('Action Tools Integration Tests', () => {
 
       // Verify Tailwind config format
       expect(palette.tailwindConfig).toContain('colors: {');
-      expect(palette.tailwindConfig).toContain('primary: {');
-      expect(palette.tailwindConfig).toContain("'500':");
+      expect(palette.tailwindConfig).toContain('primary:');
+    });
+
+    it('should generate v4 color palette with @theme format', async () => {
+      const params = {
+        baseColor: '#3B82F6',
+        name: 'primary',
+        version: 'v4' as const
+      };
+
+      const palette = await templateService.generateColorPalette(params);
+
+      expect(palette.version).toBe('v4');
+      expect(palette.tailwindConfig).toContain('@theme {');
+      expect(palette.tailwindConfig).toContain('--color-primary-500:');
+      expect(palette.tailwindConfig).not.toContain('module.exports');
     });
 
     it('should support different color input formats', async () => {
@@ -494,7 +530,8 @@ describe('Action Tools Integration Tests', () => {
       const installParams = {
         framework: 'react',
         packageManager: 'npm' as const,
-        includeTypescript: false
+        includeTypescript: false,
+        version: 'v3' as const
       };
       const installGuide = await installationService.generateInstallationGuide(installParams);
 
@@ -564,7 +601,7 @@ describe('Action Tools Integration Tests', () => {
 
       // 3. Verify the palette could be integrated into the component
       expect(palette.colors['500']).toMatch(/^#[0-9A-F]{6}$/i);
-      expect(palette.tailwindConfig).toContain('success: {');
+      expect(palette.tailwindConfig).toContain('--color-success-500:'); // v4 default uses @theme format
       
       // The template should be structured to accept color customization
       expect(template.customizations).toContain('Change alert type');
@@ -626,7 +663,8 @@ describe('Action Tools Integration Tests', () => {
       const params = {
         framework: 'react',
         packageManager: 'npm' as const,
-        includeTypescript: false
+        includeTypescript: false,
+        version: 'v3' as const
       };
 
       // Make multiple calls

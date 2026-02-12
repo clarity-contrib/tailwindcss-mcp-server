@@ -4,12 +4,14 @@
  */
 
 import { BaseService, ServiceError } from './base.js';
-import type { 
-  ComponentTemplate, 
-  ColorPalette, 
-  GenerateTemplateParams, 
-  GeneratePaletteParams 
+import type {
+  ComponentTemplate,
+  ColorPalette,
+  GenerateTemplateParams,
+  GeneratePaletteParams
 } from '../types/index.js';
+import { getVersionConfig, DEFAULT_VERSION } from '../version/index.js';
+import type { TailwindVersion } from '../version/index.js';
 
 export class TemplateService implements BaseService {
   private componentTemplates: Map<string, ComponentGenerator> = new Map();
@@ -57,8 +59,9 @@ export class TemplateService implements BaseService {
    */
   async generateColorPalette(params: GeneratePaletteParams): Promise<ColorPalette> {
     try {
-      const { baseColor, name, shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950] } = params;
-      
+      const { baseColor, name, shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950], version = DEFAULT_VERSION } = params;
+      const versionConfig = getVersionConfig(version);
+
       if (!this.isValidColor(baseColor)) {
         throw new ServiceError(
           `Invalid color format: ${baseColor}. Use hex, rgb, or hsl format.`,
@@ -69,13 +72,14 @@ export class TemplateService implements BaseService {
 
       const colors = this.generateColorShades(baseColor, shades);
       const cssVariables = this.generateCSSVariables(name, colors);
-      const tailwindConfig = this.generateTailwindColorConfig(name, colors);
+      const tailwindConfig = versionConfig.paletteConfigFormat(name, colors);
 
       return {
         name,
         colors,
         cssVariables,
-        tailwindConfig
+        tailwindConfig,
+        version
       };
     } catch (error) {
       if (error instanceof ServiceError) {

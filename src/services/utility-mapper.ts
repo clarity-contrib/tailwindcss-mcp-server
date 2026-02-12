@@ -6,15 +6,16 @@
 import { parse } from 'css-tree';
 import postcss from 'postcss';
 import { BaseService, ServiceError } from './base.js';
-import { 
-  TailwindUtility, 
-  UtilityValue, 
-  UtilityModifier, 
+import {
+  TailwindUtility,
+  UtilityValue,
+  UtilityModifier,
   ConversionResult,
   ColorInfo,
   GetUtilitiesParams,
   GetColorsParams
 } from '../types/index.js';
+import { getVersionConfig, DEFAULT_VERSION } from '../version/index.js';
 
 export class UtilityMapperService implements BaseService {
   private utilityMap: Map<string, TailwindUtility> = new Map();
@@ -24,7 +25,7 @@ export class UtilityMapperService implements BaseService {
   async initialize(): Promise<void> {
     await this.loadUtilityMappings();
     await this.loadColorMappings();
-    console.log('UtilityMapperService initialized');
+    console.error('UtilityMapperService initialized');
   }
 
   async cleanup(): Promise<void> {
@@ -74,6 +75,7 @@ export class UtilityMapperService implements BaseService {
         tailwindClasses: tailwindClasses.join(' '),
         unsupportedStyles: unsupportedStyles.length > 0 ? unsupportedStyles : undefined,
         suggestions: suggestions.length > 0 ? suggestions : undefined,
+        version: DEFAULT_VERSION,
       };
 
     } catch (error) {
@@ -138,6 +140,19 @@ export class UtilityMapperService implements BaseService {
     } else {
       // Return all utilities if no filter specified
       utilities = Array.from(this.utilityMap.values());
+    }
+
+    // Apply version-specific utility renames
+    const version = params.version || DEFAULT_VERSION;
+    const versionConfig = getVersionConfig(version);
+    if (versionConfig.renamedUtilities.size > 0) {
+      utilities = utilities.map(utility => {
+        const renamedName = versionConfig.renamedUtilities.get(utility.name);
+        if (renamedName) {
+          return { ...utility, name: renamedName, id: renamedName };
+        }
+        return utility;
+      });
     }
 
     return utilities;

@@ -18,7 +18,9 @@ import {
   McpError,
 } from "@modelcontextprotocol/sdk/types.js";
 import { initializeServices } from './services/index.js';
-import type { 
+import { DEFAULT_VERSION, SUPPORTED_VERSIONS } from './version/index.js';
+import type { TailwindVersion } from './version/index.js';
+import type {
   GetUtilitiesParams,
   GetColorsParams,
   ConfigGuideParams,
@@ -103,12 +105,17 @@ export class TailwindCSSServer {
                 description: "Filter by utility category (e.g., 'layout', 'typography', 'colors')",
               },
               property: {
-                type: "string", 
+                type: "string",
                 description: "Filter by CSS property (e.g., 'margin', 'color', 'font-size')",
               },
               search: {
                 type: "string",
                 description: "Search term to find utilities",
+              },
+              version: {
+                type: "string",
+                enum: ["v3", "v4"],
+                description: "TailwindCSS version (default: v4)",
               },
             },
             required: [],
@@ -128,6 +135,11 @@ export class TailwindCSSServer {
                 type: "boolean",
                 description: "Include all color shades (default: true)",
               },
+              version: {
+                type: "string",
+                enum: ["v3", "v4"],
+                description: "TailwindCSS version (default: v4)",
+              },
             },
             required: [],
           },
@@ -145,6 +157,11 @@ export class TailwindCSSServer {
               framework: {
                 type: "string",
                 description: "Target framework (e.g., 'react', 'vue', 'nextjs')",
+              },
+              version: {
+                type: "string",
+                enum: ["v3", "v4"],
+                description: "TailwindCSS version (default: v4)",
               },
             },
             required: [],
@@ -167,6 +184,11 @@ export class TailwindCSSServer {
               limit: {
                 type: "number",
                 description: "Limit number of results (default: 10)",
+              },
+              version: {
+                type: "string",
+                enum: ["v3", "v4"],
+                description: "TailwindCSS version (default: v4)",
               },
             },
             required: ["query"],
@@ -191,6 +213,11 @@ export class TailwindCSSServer {
                 type: "boolean",
                 description: "Include TypeScript configuration (default: false)",
               },
+              version: {
+                type: "string",
+                enum: ["v3", "v4"],
+                description: "TailwindCSS version (default: v4)",
+              },
             },
             required: ["framework"],
           },
@@ -209,6 +236,11 @@ export class TailwindCSSServer {
                 type: "string",
                 enum: ["inline", "classes", "component"],
                 description: "Output format: 'classes' for space-separated utilities, 'inline' for class attribute, 'component' for @apply directive (default: classes)",
+              },
+              version: {
+                type: "string",
+                enum: ["v3", "v4"],
+                description: "TailwindCSS version (default: v4)",
               },
             },
             required: ["css"],
@@ -232,6 +264,11 @@ export class TailwindCSSServer {
                 type: "array",
                 items: { type: "number" },
                 description: "Array of shade values to generate (default: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950])",
+              },
+              version: {
+                type: "string",
+                enum: ["v3", "v4"],
+                description: "TailwindCSS version (default: v4)",
               },
             },
             required: ["baseColor", "name"],
@@ -259,6 +296,11 @@ export class TailwindCSSServer {
               responsive: {
                 type: "boolean",
                 description: "Include responsive design classes (default: true)",
+              },
+              version: {
+                type: "string",
+                enum: ["v3", "v4"],
+                description: "TailwindCSS version (default: v4)",
               },
             },
             required: ["componentType"],
@@ -308,23 +350,35 @@ export class TailwindCSSServer {
   }
 
   /**
+   * Validates and returns a TailwindVersion, defaulting to v4
+   */
+  private validateVersion(version: any): TailwindVersion {
+    if (version && typeof version === "string" && SUPPORTED_VERSIONS.includes(version as TailwindVersion)) {
+      return version as TailwindVersion;
+    }
+    return DEFAULT_VERSION;
+  }
+
+  /**
    * Validates get utilities parameters
    */
   private validateGetUtilitiesParams(args: any): GetUtilitiesParams {
-    const params: GetUtilitiesParams = {};
-    
+    const params: GetUtilitiesParams = {
+      version: this.validateVersion(args?.version),
+    };
+
     if (args?.category && typeof args.category === "string") {
       params.category = args.category;
     }
-    
+
     if (args?.property && typeof args.property === "string") {
       params.property = args.property;
     }
-    
+
     if (args?.search && typeof args.search === "string") {
       params.search = args.search;
     }
-    
+
     return params;
   }
 
@@ -332,16 +386,18 @@ export class TailwindCSSServer {
    * Validates get colors parameters
    */
   private validateGetColorsParams(args: any): GetColorsParams {
-    const params: GetColorsParams = {};
-    
+    const params: GetColorsParams = {
+      version: this.validateVersion(args?.version),
+    };
+
     if (args?.colorName && typeof args.colorName === "string") {
       params.colorName = args.colorName;
     }
-    
+
     if (args?.includeShades !== undefined) {
       params.includeShades = Boolean(args.includeShades);
     }
-    
+
     return params;
   }
 
@@ -349,16 +405,18 @@ export class TailwindCSSServer {
    * Validates config guide parameters
    */
   private validateConfigGuideParams(args: any): ConfigGuideParams {
-    const params: ConfigGuideParams = {};
-    
+    const params: ConfigGuideParams = {
+      version: this.validateVersion(args?.version),
+    };
+
     if (args?.topic && typeof args.topic === "string") {
       params.topic = args.topic;
     }
-    
+
     if (args?.framework && typeof args.framework === "string") {
       params.framework = args.framework;
     }
-    
+
     return params;
   }
 
@@ -372,19 +430,20 @@ export class TailwindCSSServer {
         "Search query is required and must be a string"
       );
     }
-    
+
     const params: SearchDocsParams = {
       query: args.query,
+      version: this.validateVersion(args?.version),
     };
-    
+
     if (args?.category && typeof args.category === "string") {
       params.category = args.category;
     }
-    
+
     if (args?.limit && typeof args.limit === "number" && args.limit > 0) {
       params.limit = args.limit;
     }
-    
+
     return params;
   }
 
@@ -521,22 +580,23 @@ export class TailwindCSSServer {
         "Framework is required and must be a string"
       );
     }
-    
+
     const params: InstallTailwindParams = {
       framework: args.framework,
+      version: this.validateVersion(args?.version),
     };
-    
+
     if (args?.packageManager && typeof args.packageManager === "string") {
       const validPackageManagers = ['npm', 'yarn', 'pnpm', 'bun'];
       if (validPackageManagers.includes(args.packageManager)) {
         params.packageManager = args.packageManager as "npm" | "yarn" | "pnpm" | "bun";
       }
     }
-    
+
     if (args?.includeTypescript !== undefined) {
       params.includeTypescript = Boolean(args.includeTypescript);
     }
-    
+
     return params;
   }
 
@@ -550,18 +610,19 @@ export class TailwindCSSServer {
         "CSS is required and must be a string"
       );
     }
-    
+
     const params: ConvertCSSParams = {
       css: args.css,
+      version: this.validateVersion(args?.version),
     };
-    
+
     if (args?.mode && typeof args.mode === "string") {
       const validModes = ['inline', 'classes', 'component'];
       if (validModes.includes(args.mode)) {
         params.mode = args.mode as "inline" | "classes" | "component";
       }
     }
-    
+
     return params;
   }
 
@@ -575,25 +636,26 @@ export class TailwindCSSServer {
         "Base color is required and must be a string"
       );
     }
-    
+
     if (!args?.name || typeof args.name !== "string") {
       throw new McpError(
         ErrorCode.InvalidParams,
         "Palette name is required and must be a string"
       );
     }
-    
+
     const params: GeneratePaletteParams = {
       baseColor: args.baseColor,
       name: args.name,
+      version: this.validateVersion(args?.version),
     };
-    
+
     if (args?.shades && Array.isArray(args.shades)) {
       if (args.shades.every((shade: any) => typeof shade === 'number')) {
         params.shades = args.shades;
       }
     }
-    
+
     return params;
   }
 
@@ -607,26 +669,27 @@ export class TailwindCSSServer {
         "Component type is required and must be a string"
       );
     }
-    
+
     const params: GenerateTemplateParams = {
       componentType: args.componentType,
+      version: this.validateVersion(args?.version),
     };
-    
+
     if (args?.style && typeof args.style === "string") {
       const validStyles = ['minimal', 'modern', 'playful'];
       if (validStyles.includes(args.style)) {
         params.style = args.style as "minimal" | "modern" | "playful";
       }
     }
-    
+
     if (args?.darkMode !== undefined) {
       params.darkMode = Boolean(args.darkMode);
     }
-    
+
     if (args?.responsive !== undefined) {
       params.responsive = Boolean(args.responsive);
     }
-    
+
     return params;
   }
 

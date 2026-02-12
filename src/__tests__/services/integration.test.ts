@@ -45,7 +45,7 @@ describe('Service Integration Tests', () => {
 
   describe('Service Registry Lifecycle', () => {
     it('should initialize all services in correct order', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
       await registry.initializeAll();
 

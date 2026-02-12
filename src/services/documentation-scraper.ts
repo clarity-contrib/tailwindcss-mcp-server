@@ -6,10 +6,10 @@
 import axios, { AxiosInstance } from 'axios';
 import * as cheerio from 'cheerio';
 import { CachedService, ServiceError } from './base.js';
-import { 
-  CachedDocument, 
-  SearchResult, 
-  TailwindUtility, 
+import {
+  CachedDocument,
+  SearchResult,
+  TailwindUtility,
   ConfigGuide,
   ConfigExample,
   ConfigGuideParams,
@@ -18,10 +18,11 @@ import {
   UtilityValue,
   ColorInfo
 } from '../types/index.js';
+import { getVersionConfig, DEFAULT_VERSION } from '../version/index.js';
+import type { TailwindVersion } from '../version/index.js';
 
 export class DocumentationScraperService extends CachedService {
   private axiosInstance: AxiosInstance;
-  private readonly TAILWIND_DOCS_URL = 'https://tailwindcss.com';
   private readonly USER_AGENT = 'Mozilla/5.0 (compatible; TailwindCSSMcpServer/0.1.0)';
 
   constructor() {
@@ -36,15 +37,16 @@ export class DocumentationScraperService extends CachedService {
 
   async initialize(): Promise<void> {
     await super.initialize();
-    console.log('DocumentationScraperService initialized');
+    console.error('DocumentationScraperService initialized');
   }
 
   /**
    * Scrapes and caches a documentation page
    */
-  async scrapePage(path: string): Promise<CachedDocument> {
-    const fullUrl = `${this.TAILWIND_DOCS_URL}${path}`;
-    const cacheKey = this.getCacheKey(fullUrl);
+  async scrapePage(path: string, version: TailwindVersion = DEFAULT_VERSION): Promise<CachedDocument> {
+    const docsBaseUrl = getVersionConfig(version).docsBaseUrl;
+    const fullUrl = `${docsBaseUrl}${path}`;
+    const cacheKey = this.getCacheKey(fullUrl, version);
 
     this.updateCacheStats(false);
 
@@ -56,7 +58,7 @@ export class DocumentationScraperService extends CachedService {
     }
 
     try {
-      console.log(`Scraping documentation page: ${fullUrl}`);
+      console.error(`[${version}] Scraping documentation page: ${fullUrl}`);
       const response = await this.axiosInstance.get(fullUrl);
       
       const document: CachedDocument = {
@@ -87,17 +89,19 @@ export class DocumentationScraperService extends CachedService {
    * Searches documentation pages for content matching query (overloaded for params object)
    */
   async searchDocumentation(params: SearchDocsParams): Promise<SearchResult[]>;
-  async searchDocumentation(query: string, category?: string, limit?: number): Promise<SearchResult[]>;
-  async searchDocumentation(queryOrParams: string | SearchDocsParams, category?: string, limit: number = 10): Promise<SearchResult[]> {
+  async searchDocumentation(query: string, category?: string, limit?: number, version?: TailwindVersion): Promise<SearchResult[]>;
+  async searchDocumentation(queryOrParams: string | SearchDocsParams, category?: string, limit: number = 10, version: TailwindVersion = DEFAULT_VERSION): Promise<SearchResult[]> {
     const query = typeof queryOrParams === 'string' ? queryOrParams : queryOrParams.query;
     const searchCategory = typeof queryOrParams === 'string' ? category : queryOrParams.category;
     const searchLimit = typeof queryOrParams === 'string' ? limit : queryOrParams.limit || 10;
+    const searchVersion = typeof queryOrParams === 'string' ? version : queryOrParams.version || DEFAULT_VERSION;
+    const docsBaseUrl = getVersionConfig(searchVersion).docsBaseUrl;
     try {
       // For now, implement a simple search by scraping the docs index
       // In a production system, you'd want to build an index
-      const docsIndex = await this.scrapePage('/docs');
+      const docsIndex = await this.scrapePage('/docs', searchVersion);
       const $ = cheerio.load(docsIndex.content);
-      
+
       const results: SearchResult[] = [];
       const searchQuery = query.toLowerCase();
 
@@ -106,13 +110,13 @@ export class DocumentationScraperService extends CachedService {
         const link = $(element);
         const href = link.attr('href');
         const text = link.text().trim();
-        
+
         if (href && text) {
           const relevance = this.calculateRelevance(text, searchQuery);
           if (relevance > 0) {
             results.push({
               title: text,
-              url: `${this.TAILWIND_DOCS_URL}${href}`,
+              url: `${docsBaseUrl}${href}`,
               snippet: this.extractSnippet(text, searchQuery),
               relevance,
             });
@@ -140,7 +144,7 @@ export class DocumentationScraperService extends CachedService {
    */
   async scrapeAllUtilities(): Promise<TailwindUtility[]> {
     try {
-      console.log('Scraping all TailwindCSS utilities...');
+      console.error('Scraping all TailwindCSS utilities...');
       
       // Get the main docs page to find all utility categories
       const mainDoc = await this.scrapePage('/docs');
@@ -163,7 +167,7 @@ export class DocumentationScraperService extends CachedService {
         }
       }
 
-      console.log(`Successfully scraped ${utilities.length} utilities`);
+      console.error(`Successfully scraped ${utilities.length} utilities`);
       return utilities;
       
     } catch (error) {
@@ -268,7 +272,7 @@ export class DocumentationScraperService extends CachedService {
    */
   async scrapeAllColors(): Promise<ColorInfo[]> {
     try {
-      console.log('Scraping all TailwindCSS colors...');
+      console.error('Scraping all TailwindCSS colors...');
       
       // Scrape the colors reference page
       const colorsDoc = await this.scrapePage('/docs/customizing-colors');
@@ -291,7 +295,7 @@ export class DocumentationScraperService extends CachedService {
         }
       }
 
-      console.log(`Successfully scraped ${colors.length} colors`);
+      console.error(`Successfully scraped ${colors.length} colors`);
       return colors;
       
     } catch (error) {
@@ -363,16 +367,16 @@ export class DocumentationScraperService extends CachedService {
    * Gets configuration guide based on parameters
    */
   async getConfigGuide(params: ConfigGuideParams): Promise<ConfigGuide | null> {
-    return this.extractConfigGuide(params.topic || 'installation', params.framework);
+    return this.extractConfigGuide(params.topic || 'installation', params.framework, params.version);
   }
 
   /**
    * Extracts configuration guides from documentation
    */
-  async extractConfigGuide(topic: string, framework?: string): Promise<ConfigGuide | null> {
+  async extractConfigGuide(topic: string, framework?: string, version: TailwindVersion = DEFAULT_VERSION): Promise<ConfigGuide | null> {
     try {
       const configPath = framework ? `/docs/guides/${framework}` : `/docs/configuration`;
-      const doc = await this.scrapePage(configPath);
+      const doc = await this.scrapePage(configPath, version);
       const $ = cheerio.load(doc.content);
 
       const title = $('h1').first().text().trim();
@@ -414,8 +418,8 @@ export class DocumentationScraperService extends CachedService {
   /**
    * Private helper methods
    */
-  private getCacheKey(url: string): string {
-    return `doc:${url}`;
+  private getCacheKey(url: string, version: TailwindVersion = DEFAULT_VERSION): string {
+    return `doc:${version}:${url}`;
   }
 
   private getCategoryFromPath(path: string): string {

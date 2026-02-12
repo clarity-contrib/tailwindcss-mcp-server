@@ -501,4 +501,44 @@ describe('ConversionService', () => {
       });
     });
   });
+
+  describe('v4 version support', () => {
+    let conversionService: ConversionService;
+
+    beforeEach(async () => {
+      conversionService = new ConversionService();
+      await conversionService.initialize();
+    });
+
+    it('should include CSS-first note when component mode is used with v4 (default)', async () => {
+      const params: ConvertCSSParams = {
+        css: '.element { display: flex; justify-content: center; }',
+        mode: 'component'
+      };
+
+      const result = await conversionService.convertCSS(params);
+      expect(result.suggestions).toContain(
+        'TailwindCSS v4 encourages CSS-first configuration. Consider using @theme and CSS custom properties instead of @apply for complex components.'
+      );
+    });
+
+    it('should have version v4 by default', async () => {
+      const params: ConvertCSSParams = {
+        css: '.element { display: flex; }'
+      };
+
+      const result = await conversionService.convertCSS(params);
+      expect(result.version).toBe('v4');
+    });
+
+    it('should have version v3 when explicitly specified', async () => {
+      const params: ConvertCSSParams = {
+        css: '.element { display: flex; }',
+        version: 'v3'
+      };
+
+      const result = await conversionService.convertCSS(params);
+      expect(result.version).toBe('v3');
+    });
+  });
 });

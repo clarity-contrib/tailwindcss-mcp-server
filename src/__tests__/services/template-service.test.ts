@@ -517,21 +517,36 @@ describe('TemplateService', () => {
         expect(palette.cssVariables).toContain('}');
       });
 
-      it('should generate Tailwind config', async () => {
+      it('should generate Tailwind config for v3', async () => {
         const params: GeneratePaletteParams = {
           baseColor: '#3B82F6',
-          name: 'brand'
+          name: 'brand',
+          version: 'v3'
         };
 
         const palette = await templateService.generateColorPalette(params);
-        
+
         expect(palette.tailwindConfig).toContain('module.exports = {');
         expect(palette.tailwindConfig).toContain('theme: {');
         expect(palette.tailwindConfig).toContain('extend: {');
         expect(palette.tailwindConfig).toContain('colors: {');
-        expect(palette.tailwindConfig).toContain('brand: {');
-        expect(palette.tailwindConfig).toContain("'500':");
+        expect(palette.tailwindConfig).toContain('brand:');
         expect(palette.tailwindConfig).toContain('}');
+      });
+
+      it('should generate @theme config for v4', async () => {
+        const params: GeneratePaletteParams = {
+          baseColor: '#3B82F6',
+          name: 'brand'
+          // default is v4
+        };
+
+        const palette = await templateService.generateColorPalette(params);
+
+        expect(palette.tailwindConfig).toContain('@theme {');
+        expect(palette.tailwindConfig).toContain('--color-brand-500:');
+        expect(palette.tailwindConfig).not.toContain('module.exports');
+        expect(palette.version).toBe('v4');
       });
     });
 

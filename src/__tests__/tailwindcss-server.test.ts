@@ -83,8 +83,8 @@ describe('TailwindCSSServer', () => {
       mockUtilityMapper.getUtilities.mockResolvedValue(mockUtilities);
 
       const result = await server['handleGetTailwindUtilities']({});
-      
-      expect(mockUtilityMapper.getUtilities).toHaveBeenCalledWith({});
+
+      expect(mockUtilityMapper.getUtilities).toHaveBeenCalledWith({ version: 'v4' });
       expect(result.content[0].text).toContain('m-1');
       expect(result.content[0].text).toContain('margin');
     });
@@ -104,8 +104,8 @@ describe('TailwindCSSServer', () => {
       mockUtilityMapper.getColors.mockResolvedValue(mockColors);
 
       const result = await server['handleGetTailwindColors']({});
-      
-      expect(mockUtilityMapper.getColors).toHaveBeenCalledWith({});
+
+      expect(mockUtilityMapper.getColors).toHaveBeenCalledWith({ version: 'v4' });
       expect(result.content[0].text).toContain('blue');
       expect(result.content[0].text).toContain('#3b82f6');
     });
@@ -126,8 +126,8 @@ describe('TailwindCSSServer', () => {
       mockDocumentationScraper.getConfigGuide.mockResolvedValue(mockGuide);
 
       const result = await server['handleGetTailwindConfigGuide']({});
-      
-      expect(mockDocumentationScraper.getConfigGuide).toHaveBeenCalledWith({});
+
+      expect(mockDocumentationScraper.getConfigGuide).toHaveBeenCalledWith({ version: 'v4' });
       expect(result.content[0].text).toContain('Installation');
       expect(result.content[0].text).toContain('npm install');
     });
@@ -145,8 +145,8 @@ describe('TailwindCSSServer', () => {
       mockDocumentationScraper.searchDocumentation.mockResolvedValue(mockResults);
 
       const result = await server['handleSearchTailwindDocs']({ query: 'margin' });
-      
-      expect(mockDocumentationScraper.searchDocumentation).toHaveBeenCalledWith({ query: 'margin' });
+
+      expect(mockDocumentationScraper.searchDocumentation).toHaveBeenCalledWith({ query: 'margin', version: 'v4' });
       expect(result.content[0].text).toContain('Margin');
       expect(result.content[0].text).toContain('utilities');
     });
@@ -157,10 +157,11 @@ describe('TailwindCSSServer', () => {
       mockUtilityMapper.getUtilities.mockResolvedValue([]);
 
       await server['handleGetTailwindUtilities']({ category: 'spacing', property: 'margin' });
-      
+
       expect(mockUtilityMapper.getUtilities).toHaveBeenCalledWith({
         category: 'spacing',
         property: 'margin',
+        version: 'v4',
       });
     });
 
@@ -168,10 +169,11 @@ describe('TailwindCSSServer', () => {
       mockUtilityMapper.getColors.mockResolvedValue([]);
 
       await server['handleGetTailwindColors']({ colorName: 'blue', includeShades: true });
-      
+
       expect(mockUtilityMapper.getColors).toHaveBeenCalledWith({
         colorName: 'blue',
         includeShades: true,
+        version: 'v4',
       });
     });
 
@@ -179,11 +181,12 @@ describe('TailwindCSSServer', () => {
       mockDocumentationScraper.searchDocumentation.mockResolvedValue([]);
 
       await server['handleSearchTailwindDocs']({ query: 'test', category: 'layout', limit: 5 });
-      
+
       expect(mockDocumentationScraper.searchDocumentation).toHaveBeenCalledWith({
         query: 'test',
-        category: 'layout', 
+        category: 'layout',
         limit: 5,
+        version: 'v4',
       });
     });
 

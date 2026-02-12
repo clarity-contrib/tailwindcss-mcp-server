@@ -5,10 +5,12 @@
 
 import { BaseService, ServiceError } from './base.js';
 import type { InstallationGuide, InstallTailwindParams } from '../types/index.js';
+import { getVersionConfig, DEFAULT_VERSION } from '../version/index.js';
+import type { TailwindVersion, TailwindVersionConfig } from '../version/index.js';
 
 export class InstallationService implements BaseService {
   private frameworks: Map<string, FrameworkConfig> = new Map();
-  
+
   async initialize(): Promise<void> {
     this.setupFrameworkConfigs();
   }
@@ -22,8 +24,9 @@ export class InstallationService implements BaseService {
    */
   async generateInstallationGuide(params: InstallTailwindParams): Promise<InstallationGuide> {
     try {
-      const { framework, packageManager = 'npm', includeTypescript = false } = params;
-      
+      const { framework, packageManager = 'npm', includeTypescript = false, version = DEFAULT_VERSION } = params;
+      const versionConfig = getVersionConfig(version);
+
       const frameworkConfig = this.frameworks.get(framework.toLowerCase());
       if (!frameworkConfig) {
         throw new ServiceError(
@@ -33,14 +36,15 @@ export class InstallationService implements BaseService {
         );
       }
 
-      const commands = this.generateCommands(frameworkConfig, packageManager, includeTypescript);
-      const configFiles = this.generateConfigFiles(frameworkConfig, includeTypescript);
-      const nextSteps = this.generateNextSteps(frameworkConfig, framework);
+      const commands = this.generateCommands(frameworkConfig, packageManager, includeTypescript, versionConfig);
+      const configFiles = this.generateConfigFiles(frameworkConfig, includeTypescript, versionConfig);
+      const nextSteps = this.generateNextSteps(frameworkConfig, framework, versionConfig);
 
       return {
         commands,
         configFiles,
-        nextSteps
+        nextSteps,
+        version
       };
     } catch (error) {
       if (error instanceof ServiceError) {
@@ -68,10 +72,7 @@ export class InstallationService implements BaseService {
   private setupFrameworkConfigs(): void {
     this.frameworks.set('react', {
       name: 'React',
-      dependencies: ['tailwindcss', 'autoprefixer', 'postcss'],
-      devDependencies: [],
       contentPaths: ['./src/**/*.{js,jsx,ts,tsx}'],
-      cssImport: '@tailwind base;\n@tailwind components;\n@tailwind utilities;',
       hasPostCSS: true,
       setupInstructions: [
         'Import your CSS file in your main component (usually src/index.js or src/App.js)',
@@ -81,14 +82,11 @@ export class InstallationService implements BaseService {
 
     this.frameworks.set('nextjs', {
       name: 'Next.js',
-      dependencies: ['tailwindcss', 'autoprefixer', 'postcss'],
-      devDependencies: [],
       contentPaths: [
         './pages/**/*.{js,ts,jsx,tsx,mdx}',
         './components/**/*.{js,ts,jsx,tsx,mdx}',
         './app/**/*.{js,ts,jsx,tsx,mdx}'
       ],
-      cssImport: '@tailwind base;\n@tailwind components;\n@tailwind utilities;',
       hasPostCSS: true,
       setupInstructions: [
         'Import your CSS file in pages/_app.js or app/layout.js',
@@ -98,10 +96,7 @@ export class InstallationService implements BaseService {
 
     this.frameworks.set('vue', {
       name: 'Vue.js',
-      dependencies: ['tailwindcss', 'autoprefixer', 'postcss'],
-      devDependencies: [],
       contentPaths: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
-      cssImport: '@tailwind base;\n@tailwind components;\n@tailwind utilities;',
       hasPostCSS: true,
       setupInstructions: [
         'Import your CSS file in src/main.js',
@@ -111,10 +106,7 @@ export class InstallationService implements BaseService {
 
     this.frameworks.set('vite', {
       name: 'Vite',
-      dependencies: ['tailwindcss', 'autoprefixer', 'postcss'],
-      devDependencies: [],
       contentPaths: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
-      cssImport: '@tailwind base;\n@tailwind components;\n@tailwind utilities;',
       hasPostCSS: true,
       setupInstructions: [
         'Import your CSS file in src/main.js',
@@ -124,14 +116,11 @@ export class InstallationService implements BaseService {
 
     this.frameworks.set('laravel', {
       name: 'Laravel',
-      dependencies: ['tailwindcss', 'autoprefixer', 'postcss'],
-      devDependencies: [],
       contentPaths: [
         './resources/**/*.blade.php',
         './resources/**/*.js',
         './resources/**/*.vue'
       ],
-      cssImport: '@tailwind base;\n@tailwind components;\n@tailwind utilities;',
       hasPostCSS: true,
       setupInstructions: [
         'Add the Tailwind directives to your resources/css/app.css file',
@@ -142,10 +131,7 @@ export class InstallationService implements BaseService {
 
     this.frameworks.set('angular', {
       name: 'Angular',
-      dependencies: ['tailwindcss', 'autoprefixer', 'postcss'],
-      devDependencies: [],
       contentPaths: ['./src/**/*.{html,ts}'],
-      cssImport: '@tailwind base;\n@tailwind components;\n@tailwind utilities;',
       hasPostCSS: false,
       setupInstructions: [
         'Add the Tailwind directives to your src/styles.css file',
@@ -155,10 +141,7 @@ export class InstallationService implements BaseService {
 
     this.frameworks.set('svelte', {
       name: 'Svelte',
-      dependencies: ['tailwindcss', 'autoprefixer', 'postcss'],
-      devDependencies: [],
       contentPaths: ['./src/**/*.{html,js,svelte,ts}'],
-      cssImport: '@tailwind base;\n@tailwind components;\n@tailwind utilities;',
       hasPostCSS: true,
       setupInstructions: [
         'Import your CSS file in src/app.html or src/main.js',
@@ -173,12 +156,12 @@ export class InstallationService implements BaseService {
   private generateCommands(
     config: FrameworkConfig,
     packageManager: string,
-    includeTypescript: boolean
+    includeTypescript: boolean,
+    versionConfig: TailwindVersionConfig
   ): string[] {
     const commands: string[] = [];
-    
-    // Installation command
-    const allDeps = [...config.dependencies, ...config.devDependencies];
+
+    const allDeps = [...versionConfig.coreDependencies];
     if (includeTypescript && !allDeps.includes('@types/node')) {
       allDeps.push('@types/node');
     }
@@ -198,8 +181,9 @@ export class InstallationService implements BaseService {
         break;
     }
 
-    // Initialize Tailwind config
-    commands.push('npx tailwindcss init -p');
+    if (versionConfig.initCommand) {
+      commands.push(versionConfig.initCommand);
+    }
 
     return commands;
   }
@@ -207,20 +191,26 @@ export class InstallationService implements BaseService {
   /**
    * Generate configuration files
    */
-  private generateConfigFiles(config: FrameworkConfig, includeTypescript: boolean): Array<{ filename: string; content: string }> {
+  private generateConfigFiles(
+    config: FrameworkConfig,
+    includeTypescript: boolean,
+    versionConfig: TailwindVersionConfig
+  ): Array<{ filename: string; content: string }> {
     const configFiles: Array<{ filename: string; content: string }> = [];
 
-    // Tailwind config file
-    const configExtension = includeTypescript ? 'ts' : 'js';
-    const tailwindConfig = this.generateTailwindConfig(config, includeTypescript);
-    configFiles.push({
-      filename: `tailwind.config.${configExtension}`,
-      content: tailwindConfig
-    });
+    // Tailwind config file (only for v3, v4 uses CSS-first config)
+    if (versionConfig.configFileRequired) {
+      const configExtension = includeTypescript ? 'ts' : 'js';
+      const tailwindConfig = versionConfig.generateTailwindConfig(config.contentPaths, includeTypescript);
+      configFiles.push({
+        filename: `tailwind.config.${configExtension}`,
+        content: tailwindConfig
+      });
+    }
 
     // PostCSS config (if needed)
     if (config.hasPostCSS) {
-      const postcssConfig = this.generatePostCSSConfig();
+      const postcssConfig = this.generatePostCSSConfig(versionConfig);
       configFiles.push({
         filename: 'postcss.config.js',
         content: postcssConfig
@@ -230,40 +220,23 @@ export class InstallationService implements BaseService {
     // CSS file
     configFiles.push({
       filename: 'src/index.css',
-      content: config.cssImport
+      content: versionConfig.cssEntryContent
     });
 
     return configFiles;
   }
 
   /**
-   * Generate Tailwind configuration
-   */
-  private generateTailwindConfig(config: FrameworkConfig, includeTypescript: boolean): string {
-    const typeAnnotation = includeTypescript ? ': import("tailwindcss").Config' : '';
-    
-    return `/** @type {import('tailwindcss').Config} */
-${includeTypescript ? 'import type { Config } from "tailwindcss";' : ''}
-
-${includeTypescript ? 'const config: Config = {' : 'module.exports = {'}
-  content: [
-    ${config.contentPaths.map(path => `"${path}"`).join(',\n    ')}
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}${includeTypescript ? ';\n\nexport default config;' : ''}`;
-  }
-
-  /**
    * Generate PostCSS configuration
    */
-  private generatePostCSSConfig(): string {
+  private generatePostCSSConfig(versionConfig: TailwindVersionConfig): string {
+    const pluginEntries = Object.entries(versionConfig.postcssPluginConfig)
+      .map(([name, _config]) => `    ${JSON.stringify(name)}: {},`)
+      .join('\n');
+
     return `module.exports = {
   plugins: {
-    tailwindcss: {},
-    autoprefixer: {},
+${pluginEntries}
   },
 }`;
   }
@@ -271,14 +244,19 @@ ${includeTypescript ? 'const config: Config = {' : 'module.exports = {'}
   /**
    * Generate next steps instructions
    */
-  private generateNextSteps(config: FrameworkConfig, framework: string): string[] {
-    const nextSteps = [
-      'Update your tailwind.config.js content paths to match your project structure',
-      ...config.setupInstructions,
-      'Start your development server',
-      'Start using TailwindCSS classes',
-      'Test TailwindCSS by adding utility classes to your components'
-    ];
+  private generateNextSteps(config: FrameworkConfig, framework: string, versionConfig: TailwindVersionConfig): string[] {
+    const nextSteps: string[] = [];
+
+    if (versionConfig.configFileRequired) {
+      nextSteps.push('Update your tailwind.config.js content paths to match your project structure');
+    } else {
+      nextSteps.push('Customize your design tokens using @theme in your CSS file');
+    }
+
+    nextSteps.push(...config.setupInstructions);
+    nextSteps.push('Start your development server');
+    nextSteps.push('Start using TailwindCSS classes');
+    nextSteps.push('Test TailwindCSS by adding utility classes to your components');
 
     // Add framework-specific steps
     if (framework.toLowerCase() === 'nextjs') {
@@ -295,10 +273,7 @@ ${includeTypescript ? 'const config: Config = {' : 'module.exports = {'}
 
 interface FrameworkConfig {
   name: string;
-  dependencies: string[];
-  devDependencies: string[];
   contentPaths: string[];
-  cssImport: string;
   hasPostCSS: boolean;
   setupInstructions: string[];
 }

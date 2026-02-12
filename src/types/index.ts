@@ -3,6 +3,10 @@
  * Based on the implementation plan in TAILWINDCSS_MCP_IMPLEMENTATION_PLAN.md
  */
 
+import type { TailwindVersion } from '../version/index.js';
+
+export type { TailwindVersion } from '../version/index.js';
+
 export interface TailwindUtility {
   id: string;
   name: string;
@@ -92,6 +96,7 @@ export interface InstallationGuide {
     content: string;
   }[];
   nextSteps: string[];
+  version: TailwindVersion;
 }
 
 export interface ConversionResult {
@@ -99,6 +104,7 @@ export interface ConversionResult {
   unsupportedStyles?: string[];
   suggestions?: string[];
   customUtilities?: string[];
+  version: TailwindVersion;
 }
 
 export interface ColorPalette {
@@ -108,6 +114,7 @@ export interface ColorPalette {
   };
   cssVariables: string;
   tailwindConfig: string;
+  version: TailwindVersion;
 }
 
 export interface UsageAnalysis {
@@ -142,45 +149,53 @@ export interface GetUtilitiesParams {
   category?: string;
   property?: string;
   search?: string;
+  version?: TailwindVersion;
 }
 
 export interface GetColorsParams {
   colorName?: string;
   includeShades?: boolean;
+  version?: TailwindVersion;
 }
 
 export interface ConfigGuideParams {
   topic?: string;
   framework?: string;
+  version?: TailwindVersion;
 }
 
 export interface SearchDocsParams {
   query: string;
   category?: string;
   limit?: number;
+  version?: TailwindVersion;
 }
 
 export interface InstallTailwindParams {
   framework: string;
   packageManager?: "npm" | "yarn" | "pnpm" | "bun";
   includeTypescript?: boolean;
+  version?: TailwindVersion;
 }
 
 export interface ConvertCSSParams {
   css: string;
   mode?: "inline" | "classes" | "component";
+  version?: TailwindVersion;
 }
 
 export interface GeneratePaletteParams {
   baseColor: string;
   name: string;
   shades?: number[];
+  version?: TailwindVersion;
 }
 
 export interface AnalyzeUsageParams {
   projectPath?: string;
   checkDuplicates?: boolean;
   checkUnused?: boolean;
+  version?: TailwindVersion;
 }
 
 export interface GenerateTemplateParams {
@@ -188,4 +203,5 @@ export interface GenerateTemplateParams {
   style?: "minimal" | "modern" | "playful";
   darkMode?: boolean;
   responsive?: boolean;
+  version?: TailwindVersion;
 }

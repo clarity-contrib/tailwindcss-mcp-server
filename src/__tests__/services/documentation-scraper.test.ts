@@ -34,10 +34,10 @@ describe('DocumentationScraperService', () => {
 
   describe('initialization', () => {
     it('should initialize successfully', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
       await service.initialize();
-      
+
       expect(consoleSpy).toHaveBeenCalledWith('DocumentationScraperService initialized');
       consoleSpy.mockRestore();
     });

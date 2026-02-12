@@ -23,11 +23,11 @@ describe('UtilityMapperService', () => {
 
   describe('initialization', () => {
     it('should initialize successfully', async () => {
-      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-      
+      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
       const newService = new UtilityMapperService();
       await newService.initialize();
-      
+
       expect(consoleSpy).toHaveBeenCalledWith('UtilityMapperService initialized');
       consoleSpy.mockRestore();
     });

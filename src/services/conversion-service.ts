@@ -6,6 +6,8 @@
 import { BaseService, ServiceError } from './base.js';
 import type { ConversionResult, ConvertCSSParams } from '../types/index.js';
 import * as csstree from 'css-tree';
+import { getVersionConfig, DEFAULT_VERSION } from '../version/index.js';
+import type { TailwindVersion } from '../version/index.js';
 
 export class ConversionService implements BaseService {
   private propertyMap: Map<string, PropertyMapping> = new Map();
@@ -26,13 +28,15 @@ export class ConversionService implements BaseService {
    */
   async convertCSS(params: ConvertCSSParams): Promise<ConversionResult> {
     try {
-      const { css, mode = 'classes' } = params;
-      
+      const { css, mode = 'classes', version = DEFAULT_VERSION } = params;
+      const versionConfig = getVersionConfig(version);
+
       if (!css.trim()) {
         return {
           tailwindClasses: '',
           unsupportedStyles: [],
-          suggestions: ['Provide some CSS to convert']
+          suggestions: ['Provide some CSS to convert'],
+          version
         };
       }
 
@@ -47,8 +51,15 @@ export class ConversionService implements BaseService {
 
       const ast = this.parseCSS(css);
       const conversions = this.extractStylesFromAST(ast);
-      
-      return this.formatResult(conversions, mode);
+
+      // Apply version-specific utility renames
+      if (versionConfig.renamedUtilities.size > 0) {
+        conversions.utilities = conversions.utilities.map(util => {
+          return versionConfig.renamedUtilities.get(util) || util;
+        });
+      }
+
+      return this.formatResult(conversions, mode, version);
     } catch (error) {
       if (error instanceof ServiceError) {
         throw error;
@@ -338,12 +349,13 @@ export class ConversionService implements BaseService {
   /**
    * Format the conversion result
    */
-  private formatResult(conversions: ConversionData, mode: string): ConversionResult {
+  private formatResult(conversions: ConversionData, mode: string, version: TailwindVersion = DEFAULT_VERSION): ConversionResult {
     const result: ConversionResult = {
       tailwindClasses: '',
       unsupportedStyles: conversions.unsupported,
       suggestions: [],
-      customUtilities: conversions.custom
+      customUtilities: conversions.custom,
+      version
     };
 
     // Add specific suggestions first
@@ -351,7 +363,7 @@ export class ConversionService implements BaseService {
       if (!result.suggestions) result.suggestions = [];
       result.suggestions.push("Some CSS properties don't have direct TailwindCSS equivalents. Consider using arbitrary values like [property:value]");
     }
-    
+
     if (conversions.custom.length > 0) {
       if (!result.suggestions) result.suggestions = [];
       result.suggestions.push("Some values are outside Tailwind's default scale. Consider extending your Tailwind config or using arbitrary values");
@@ -372,6 +384,10 @@ export class ConversionService implements BaseService {
         break;
       case 'component':
         result.tailwindClasses = `.component {\n  @apply ${conversions.utilities.join(' ')};\n}`;
+        if (version === 'v4') {
+          if (!result.suggestions) result.suggestions = [];
+          result.suggestions.push('TailwindCSS v4 encourages CSS-first configuration. Consider using @theme and CSS custom properties instead of @apply for complex components.');
+        }
         break;
       default: // 'classes'
         result.tailwindClasses = conversions.utilities.join(' ');
