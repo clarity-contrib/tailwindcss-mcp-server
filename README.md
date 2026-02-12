@@ -8,6 +8,33 @@
 
 A comprehensive Model Context Protocol (MCP) server that provides TailwindCSS utilities, documentation, conversion tools, and template generation capabilities. This server enables AI assistants to help with TailwindCSS development through intelligent tooling and real-time assistance.
 
+## ✨ What's New in v1.1.0
+
+### TailwindCSS v3 + v4 Version Support
+
+Every tool now accepts an optional `version` parameter (`"v3"` or `"v4"`, defaults to `"v4"`) so you get accurate guidance for your project's TailwindCSS version.
+
+| Feature | v3 | v4 |
+|---|---|---|
+| CSS entry | `@tailwind base/components/utilities` | `@import "tailwindcss"` |
+| Config file | `tailwind.config.js` (required) | Not needed (CSS-first) |
+| PostCSS plugin | `tailwindcss` + `autoprefixer` | `@tailwindcss/postcss` |
+| Dependencies | `tailwindcss autoprefixer postcss` | `tailwindcss @tailwindcss/postcss` |
+| Customization | JS config `theme.extend` | CSS `@theme { }` block |
+| Docs URL | `v3.tailwindcss.com` | `tailwindcss.com` |
+
+```typescript
+// Get v4 installation guide (default)
+install_tailwind({ framework: "react" })
+
+// Get v3 installation guide
+install_tailwind({ framework: "react", version: "v3" })
+
+// Works on all 8 tools
+search_tailwind_docs({ query: "dark mode", version: "v4" })
+generate_color_palette({ baseColor: "#6366F1", name: "brand", version: "v3" })
+```
+
 ## 🚀 Features
 
 ### Information Tools (4 tools)
@@ -187,6 +214,7 @@ Retrieve TailwindCSS utility classes with flexible filtering options.
 - `category` (optional): Filter by category (e.g., 'layout', 'typography', 'colors')
 - `property` (optional): Filter by CSS property (e.g., 'margin', 'color', 'font-size')
 - `search` (optional): Search term to find specific utilities
+- `version` (optional): TailwindCSS version — `"v3"` or `"v4"` (default: `"v4"`)
 
 **Example Usage:**
 ```typescript
@@ -206,6 +234,7 @@ Access TailwindCSS color palette with complete shade information.
 **Parameters:**
 - `colorName` (optional): Specific color name (e.g., 'blue', 'red')
 - `includeShades` (optional): Include all color shades (default: true)
+- `version` (optional): TailwindCSS version — `"v3"` or `"v4"` (default: `"v4"`)
 
 **Example Usage:**
 ```typescript
@@ -222,6 +251,7 @@ Get configuration guides and best practices for different frameworks.
 **Parameters:**
 - `topic` (optional): Configuration topic (e.g., 'installation', 'customization')
 - `framework` (optional): Target framework (e.g., 'react', 'vue', 'nextjs')
+- `version` (optional): TailwindCSS version — `"v3"` or `"v4"` (default: `"v4"`)
 
 **Example Usage:**
 ```typescript
@@ -239,6 +269,7 @@ Search TailwindCSS documentation with intelligent filtering.
 - `query` (required): Search query for TailwindCSS documentation
 - `category` (optional): Filter by documentation category
 - `limit` (optional): Limit number of results (default: 10)
+- `version` (optional): TailwindCSS version — `"v3"` or `"v4"` (default: `"v4"`)
 
 **Example Usage:**
 ```typescript
@@ -264,6 +295,7 @@ Generate complete installation commands and configuration files for any framewor
 - `framework` (required): Target framework ('react', 'nextjs', 'vue', 'vite', 'laravel', 'angular', 'svelte')
 - `packageManager` (optional): Package manager ('npm', 'yarn', 'pnpm', 'bun') - default: 'npm'
 - `includeTypescript` (optional): Include TypeScript configuration (default: false)
+- `version` (optional): TailwindCSS version — `"v3"` or `"v4"` (default: `"v4"`)
 
 **Example Usage:**
 ```typescript
@@ -287,6 +319,7 @@ Convert traditional CSS to TailwindCSS utility classes with intelligent suggesti
 **Parameters:**
 - `css` (required): CSS code to convert to TailwindCSS utilities
 - `mode` (optional): Output format ('classes', 'inline', 'component') - default: 'classes'
+- `version` (optional): TailwindCSS version — `"v3"` or `"v4"` (default: `"v4"`). v4 applies renamed utilities automatically.
 
 **Example Usage:**
 ```typescript
@@ -315,6 +348,7 @@ Create custom color palettes with multiple shades from a base color.
 - `baseColor` (required): Base color in hex, rgb, or hsl format
 - `name` (required): Name for the color palette
 - `shades` (optional): Array of shade values (default: [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950])
+- `version` (optional): TailwindCSS version — `"v3"` or `"v4"` (default: `"v4"`). v3 outputs JS config (`module.exports`), v4 outputs CSS `@theme { }` block.
 
 **Example Usage:**
 ```typescript
@@ -346,6 +380,7 @@ Generate HTML component templates with TailwindCSS classes and customization sug
 - `style` (optional): Visual style ('minimal', 'modern', 'playful') - default: 'modern'
 - `darkMode` (optional): Include dark mode support (default: false)
 - `responsive` (optional): Include responsive design classes (default: true)
+- `version` (optional): TailwindCSS version — `"v3"` or `"v4"` (default: `"v4"`)
 
 **Example Usage:**
 ```typescript
@@ -447,8 +482,9 @@ This will start the inspector and provide a URL for browser-based debugging.
 
 ## 📊 Server Capabilities
 
-- **Real-time Documentation**: Access up-to-date TailwindCSS documentation
-- **Intelligent Conversion**: Convert CSS to TailwindCSS with accuracy and suggestions
+- **Version-Aware**: Full support for both TailwindCSS v3 and v4 with accurate version-specific guidance
+- **Real-time Documentation**: Access up-to-date TailwindCSS documentation (v3 and v4)
+- **Intelligent Conversion**: Convert CSS to TailwindCSS with accuracy and suggestions, including v4 utility renames
 - **Framework Integration**: Support for all major frontend frameworks
 - **Color Management**: Advanced color palette generation with shade variants
 - **Template Generation**: Ready-to-use component templates with customization options
