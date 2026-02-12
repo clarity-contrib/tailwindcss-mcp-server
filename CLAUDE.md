@@ -14,7 +14,12 @@ This is a TypeScript-based MCP (Model Context Protocol) server for TailwindCSS, 
 - `bun run watch` - Watch mode for development (auto-rebuilds on file changes)
 
 ### Testing & Debugging
+- `bun run test` or `bunx vitest run` - Run all tests
 - `bun run inspector` - Launch MCP Inspector for debugging the server through a web interface
+
+### Publishing
+- `bun publish` - Publish to npm (auto-builds via `prepare` script)
+- Always use `bun` for all package management — never npm/yarn/pnpm
 
 ## Architecture & Key Components
 
