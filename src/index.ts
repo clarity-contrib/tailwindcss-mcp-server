@@ -44,6 +44,7 @@ import type {
  */
 export class TailwindCSSServer {
   private server: Server;
+  private readyPromise: Promise<void> | null = null;
   private documentationScraper: any;
   private utilityMapper: any;
   private installationService: any;
@@ -310,6 +311,7 @@ export class TailwindCSSServer {
     }));
 
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
+      if (this.readyPromise) await this.readyPromise;
       switch (request.params.name) {
         case "get_tailwind_utilities":
           return await this.handleGetTailwindUtilities(request.params.arguments);
@@ -698,10 +700,11 @@ export class TailwindCSSServer {
    * Run the server
    */
   async run() {
-    await this.initialize();
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
     console.error("TailwindCSS MCP server running on stdio");
+    this.readyPromise = this.initialize();
+    await this.readyPromise;
   }
 }
 
